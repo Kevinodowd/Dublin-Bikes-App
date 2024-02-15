@@ -5,9 +5,18 @@
 <title>HTML5 Template</title>
 </head>
 <body>
-<!-- Body Content Goes Here! -->
-<H1>Weather Data</H1>
-<h5>Enter a number between 1 and 5 to choose a number of days to display:</h5>
-<h2> ahhhhhhhhhh </h2>
+<h1>Weather Data</h1>
+<p>Enter a number between 1 and 5 to choose a number of days to display:</p>
+
+<script>
+var parsedDailyWeather;
+var parsedDetailedWeather;
+
+//Use XMLHHttpRequest to get data from JSON
+var xmlhttp1 = new XMLHttpRequest ();
+var url = "https://api.openweathermap.org/data/3.0/onecall?lat={lat}&lon={lon}&exclude={part}&appid={17b4a592cf658d24febca963b75f7adc}"
+</script>
+
+
 </body>
 </html>
