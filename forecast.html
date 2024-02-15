@@ -9,20 +9,33 @@
 <p>Enter a number between 1 and 5 to choose a number of days to display:</p>
 
 <script>
-let locationInput = document.querySelector('.locationInput'); //location needed for weather when grabbing from API... line 20(lat and lon)
+let locationInput = document.querySelector('.locationInput'); //location needed for weather when grabbing from API... line 23(lat and lon)
 //May need Geocoding API depending on which weather to give(based on given user input such as city or based on bike stations)
-
+//Default current weather based on Dublin
+//On search, change the weather to user location... would need to combine with JCD API location
+var parsedDefaultLocation;
 var parsedDailyWeather;
 var parsedDetailedWeather;
 
 //Use XMLHHttpRequest to get data from JSON
 var xmlhttp1 = new XMLHttpRequest ();
+//note lat and lon have to be adjused
 var url = "https://api.openweathermap.org/data/3.0/onecall?lat={locationinput.value}&lon={locationinput.value}&appid={17b4a592cf658d24febca963b75f7adc}"
 
 xmlhttp1.onreadystatechange = function () {
     if (xmlhttp1.readyState == 4 && xmlhttp1.status == 200) {
         //action to be done when document is ready below
         // myFunction(xmlhttp1.responseText)
+    }
+}
+
+// Default weather location
+let defaultLocation = new XMLHttpRequest ()
+var url = "http://api.openweathermap.org/geo/1.0/direct?q=Dublin&appid={17b4a592cf658d24febca963b75f7adc}"
+
+defaultLocation.onreadystatechange = function () {
+    if (defaultLocation.readyState == 4 && defaultLocation == 200) {
+        parsedDefaultLocation = defaultLocation.responseText;     
     }
 }
 </script>
