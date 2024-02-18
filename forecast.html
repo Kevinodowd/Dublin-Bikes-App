@@ -7,37 +7,110 @@
 <body>
 <h1>Weather Data</h1>
 <p>Enter a number between 1 and 5 to choose a number of days to display:</p>
+<table >
+    <tbody id="weatherSummary">
+        <tr>
+            <th>Date</th>
+            <th>Summary</th>
+            <th>Icon</th>
+            <th>Temperature(celcius)</th>
+            <th>Humidity</th>
+            <th>Wind Speed</th>
+            <th>Pressure</th>
+        </tr>
+    </tbody>
+</table>
 
 <script>
 let locationInput = document.querySelector('.locationInput'); //location needed for weather when grabbing from API... line 23(lat and lon)
-//May need Geocoding API depending on which weather to give(based on given user input such as city or based on bike stations)
 //Default current weather based on Dublin
 //On search, change the weather to user location... would need to combine with JCD API location
-var parsedDefaultLocation;
+var locationDetails;
 var parsedDailyWeather;
-var parsedDetailedWeather;
+// var parsedDetailedWeather;
 
-//Use XMLHHttpRequest to get data from JSON
-var xmlhttp1 = new XMLHttpRequest ();
-//note lat and lon have to be adjused
-var url = "https://api.openweathermap.org/data/3.0/onecall?lat={locationinput.value}&lon={locationinput.value}&appid={17b4a592cf658d24febca963b75f7adc}"
+// //Use XMLHHttpRequest to get data from JSON
+// var xmlhttp1 = new XMLHttpRequest ();
+// //note lat and lon have to be adjused
+// var url = "https://api.openweathermap.org/data/3.0/onecall?lat={locationinput.value}&lon={locationinput.value}&appid={17b4a592cf658d24febca963b75f7adc}"
 
-xmlhttp1.onreadystatechange = function () {
-    if (xmlhttp1.readyState == 4 && xmlhttp1.status == 200) {
-        //action to be done when document is ready below
-        // myFunction(xmlhttp1.responseText)
-    }
-}
+
+// xmlhttp1.onreadystatechange = function () {
+//     if (xmlhttp1.readyState == 4 && xmlhttp1.status == 200) {
+//         //action to be done when document is ready below
+//         // myFunction(xmlhttp1.responseText)
+//     }
+// }
 
 // Default weather location
-let defaultLocation = new XMLHttpRequest ()
-var url = "http://api.openweathermap.org/geo/1.0/direct?q=Dublin&appid={17b4a592cf658d24febca963b75f7adc}"
+let defaultLocationRequest = new XMLHttpRequest ();
+const defaultLocation = "Dublin";
+var url = "http://api.openweathermap.org/geo/1.0/direct?q=" + defaultLocation + "&appid=17b4a592cf658d24febca963b75f7adc";
 
-defaultLocation.onreadystatechange = function () {
-    if (defaultLocation.readyState == 4 && defaultLocation == 200) {
-        parsedDefaultLocation = defaultLocation.responseText;     
+defaultLocationRequest.onreadystatechange = function () {
+
+    if (defaultLocationRequest.readyState == XMLHttpRequest.DONE /* 4 */ && defaultLocationRequest.status == 200) {
+        locationDetails = JSON.parse(defaultLocationRequest.responseText);
+
+        // Now we have location details. Create, set up and send new request for weather using the location
+        // open and send are only ones required inside this if statement. var xmlhttp1 and event can go outside
+
+        var weatherRequest = new XMLHttpRequest ();
+        var url = "https://api.openweathermap.org/data/3.0/onecall?lat=" + locationDetails[0].lat + "&lon=" + locationDetails[0].lon + "&appid=17b4a592cf658d24febca963b75f7adc&&units=metric";
+
+        weatherRequest.onreadystatechange = function () {
+            if (weatherRequest.readyState == 4 && weatherRequest.status == 200) {
+                parsedDailyWeather = JSON.parse(weatherRequest.responseText);
+                const weatherDescription = parsedDailyWeather.current.weather[0].description;
+                console.log(weatherDescription); // print to dev tools "console"
+                
+                //document.getElementById("weatherSummary").innerHTML = weatherDescription;
+                let weatherRow = document.createElement('tr');
+                let date = document.createElement('td');
+                date.textContent = new Date(parsedDailyWeather.current.dt * 1000).toDateString();
+                weatherRow.appendChild(date);
+                
+                // summary
+                let summary = document.createElement('td');
+                summary.textContent = weatherDescription;
+                weatherRow.appendChild(summary);
+
+                //icon
+                let iconCell = document.createElement('td');
+                let iconImg = document.createElement('img');
+                iconImg.setAttribute("src", "https://openweathermap.org/img/wn/" + parsedDailyWeather.current.weather[0].icon + "@2x.png")
+                iconCell.appendChild(iconImg);
+                weatherRow.appendChild(iconCell);
+                //temp
+                let temperature = document.createElement('td');
+                temperature.textContent = parsedDailyWeather.current.temp;
+                weatherRow.appendChild(temperature);
+                //humidity
+                let humidity = document.createElement('td');
+                humidity.textContent = parsedDailyWeather.current.humidity;
+                weatherRow.appendChild(humidity);
+                
+                // windspeed
+                let windspeed = document.createElement('td');
+                windspeed.textContent = parsedDailyWeather.current.wind_speed;
+                weatherRow.appendChild(windspeed);
+
+                //pressure
+                let pressure = document.createElement('td');
+                pressure.textContent = parsedDailyWeather.current.pressure;
+                weatherRow.appendChild(pressure);
+
+                document.getElementById("weatherSummary").appendChild(weatherRow);
+            }
+        };
+
+        weatherRequest.open("GET", url, true);
+        weatherRequest.send();
     }
-}
+};
+defaultLocationRequest.open("GET", url, true);
+defaultLocationRequest.send();
+
 </script>
 
 
