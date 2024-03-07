@@ -1,0 +1,62 @@
+<html>
+  <head>
+    <title>Simple Map</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="{{url_for('static',filename='style.css')}}"
+    />
+    <script
+      type="module"
+      src="{{url_for('static',filename='index.js')}}"
+    ></script>
+  </head>
+  <body>
+    <div id="leftbar">
+      <div id="form">
+        <label for="startLoc">Please enter your starting location</label><br />
+        <input type="text" id="startLoc" name="startLoc" value="" /><br />
+        <label for="endLoc">Please enter your destination</label><br />
+        <input type="text" id="endLoc" name="endLoc" value="" /><br /><br />
+
+        <!-- <label for="birthday">Return time:</label>
+        <input type="datetime-local" id="returnTime" name="returnTime" /> -->
+
+        <!-- <button onclick="goToLocation(fromLoc.value, toLoc.value)"> -->
+        <p>
+          <input
+            type="submit"
+            value="Submit"
+            onclick="goToLocation(startLoc.value, endLoc.value)"
+          />
+          <input type="reset" value="Reset" />
+        </p>
+      </div>
+      <div id="barchartContainer">
+        <div id="todayChart" class="barchart"></div>
+        <div id="dailyAvgChart" class="barchart"></div>
+      </div>
+    </div>
+
+    <div id="map-container">
+      <div id="overlayInfo"></div>
+      <div id="buttonContainer">
+        <button type="button" id="availableBikes" class="disabled">
+          Available bikes
+        </button>
+        <button type="button" id="availableSpaces" class="">
+          Available spaces
+        </button>
+      </div>
+      <div id="map"></div>
+    </div>
+
+    <!-- copy down from google api map document-->
+    <!-- prettier-ignore -->
+    <script>(g=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=`https://maps.${c}apis.com/maps/api/js?`+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})
+      ({key: "AIzaSyAX_iqnLB8j7JggiCSHd-pm6RDBBeSbRU0", v: "beta"});</script>
+  </body>
+</html>
