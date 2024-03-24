@@ -17,6 +17,7 @@
   <body>
     <div id="leftbar">
       <div id="form">
+        <h3>Please Plan Your Trip:</h3>
         <label for="startLoc">Please enter your starting location</label><br />
         <input type="text" id="startLoc" name="startLoc" value="" /><br />
         <label for="endLoc">Please enter your destination</label><br />
@@ -36,8 +37,13 @@
         </p>
       </div>
       <div id="barchartContainer">
+        <h3>Occupancy Statistics:</h3>
+        <button class="occupancyBtn" id="todayChartBtn" onlick="showChart('today')">today</button>
+        <button class="occupancyBtn" id="dailyAvgChartBtn" onlick="showChart('dailyAvg')">daily average</button>
+        <button class="occupancyBtn">next 6 hours predict</button>
         <div id="todayChart" class="barchart"></div>
         <div id="dailyAvgChart" class="barchart"></div>
+        <div id="predictChart" class="barchart"></div>
       </div>
     </div>
 

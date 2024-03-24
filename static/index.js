@@ -7,6 +7,9 @@ const { Map, InfoWindow } = await google.maps.importLibrary("maps");
 const { AdvancedMarkerElement, PinElement, AdvancedMarkerClickEvent } =
   await google.maps.importLibrary("marker");
 
+  const { Place } = await google.maps.importLibrary("places");
+
+
 let currentMarkers = [];
 
 const infoWindow = new InfoWindow();
@@ -15,6 +18,8 @@ const stations_json = await fetchStations();
 
 const bikeBtn = document.getElementById("availableBikes");
 const spaceBtn = document.getElementById("availableSpaces");
+
+
 
 function clearMarkers() {
   currentMarkers.forEach((marker) => {
@@ -49,7 +54,8 @@ async function initMap(stations_json) {
     map = new Map(document.getElementById("map"), {
       zoom: 13.5,
       center: position,
-      mapId: "Dublin",
+      mapId: "ca9c8053cd850a9c",
+      
     });
 
     console.log("generate a map.");
@@ -173,8 +179,8 @@ function IconColor(station, bikeOrSpace) {
     if (spaceLeft * 1 === 0) {
       return new PinElement({
         glyphColor: "white",
-        background: "#9A9898",
-        borderColor: "#9A9898",
+        background: "#F80303",
+        borderColor: "#F80303",
       });
     } else {
       return new PinElement({
@@ -188,8 +194,8 @@ function IconColor(station, bikeOrSpace) {
     if (bikeLeft * 1 === 0) {
       return new PinElement({
         glyphColor: "white",
-        background: "#9A9898",
-        borderColor: "#9A9898",
+        background: "#F80303",
+        borderColor: "#F80303",
       });
     } else {
       return new PinElement({
@@ -276,14 +282,14 @@ async function generateIcon(station, bikeOrSpace) {
 
     infoWindow.setContent(infoWindowContent);
     infoWindow.open(marker.map, marker);
-  });
+  });}
 
-  async function showLeftBar() {
-    mapClass = document.getElementById("map").classList;
-    if ("showLeft" in mapClass) {
-    }
-  }
-}
+//   async function showLeftBar() {
+//     mapClass = document.getElementById("map").classList;
+//     if ("showLeft" in mapClass) {
+//     }
+//   }
+// }
 
 window.generateOccupancy = async (station_id) => {
   try {
@@ -293,10 +299,8 @@ window.generateOccupancy = async (station_id) => {
     }
     const availability = await response.json();
 
-    //availablity: stationid,status,lastupdate,stands, bikes, fetchtime
-    //console.log(availability);
-
     const todayAvailablity = await getTodayAvailabiliy(availability);
+    // console.log(todayAvailablity);
     const dailyAvg = await calculateDailyBikeNumbers(availability);
 
     generateTodayBarChart(todayAvailablity, "todayChart");
@@ -308,7 +312,7 @@ window.generateOccupancy = async (station_id) => {
 };
 
 function generateTodayBarChart(data_input, barchartSection) {
-  let trace1 = {
+  if(data_input.length > 0){let trace1 = {
     x: [],
     y: [],
     name: "bike",
@@ -335,9 +339,13 @@ function generateTodayBarChart(data_input, barchartSection) {
     title: "today's occupancy",
     font: { size: 15 },
     barmode: "stack",
+    width:500,
   };
 
-  Plotly.newPlot(barchartSection, data, layout);
+  Plotly.newPlot(barchartSection, data, layout);}else{
+    document.getElementById(barchartSection).innerHTML = `<p>Do not have today's data...</p>`;
+  }
+  
 }
 
 function generateAvgBarChart(dailyAvgData, barchartSection) {
@@ -346,6 +354,7 @@ function generateAvgBarChart(dailyAvgData, barchartSection) {
     y: [],
     name: "bike",
     type: "bar",
+    marker: {color: 'rgb(29, 200, 63)'}
   };
 
   var trace2 = {
@@ -353,6 +362,7 @@ function generateAvgBarChart(dailyAvgData, barchartSection) {
     y: [],
     name: "space",
     type: "bar",
+    marker: {color: 'rgb(18, 95, 230)'}
   };
 
   Object.keys(dailyAvgData).forEach((date) => {
@@ -369,10 +379,17 @@ function generateAvgBarChart(dailyAvgData, barchartSection) {
     title: "average occupancy",
     font: { size: 15 },
     barmode: "stack",
+    width:500,
   };
 
   Plotly.newPlot(barchartSection, data, layout);
 }
+
+async function generatePredictBarchart(){
+
+};
+
+
 
 async function getTodayAvailabiliy(data) {
   const ct = Date.now();
@@ -424,6 +441,52 @@ async function calculateDailyBikeNumbers(data) {
 
   return dailyCounts;
 }
+
+function showChart(state){
+  console.log("function showChart is triggered...");
+
+  //adjust the charts' state
+  const occupancyCharts = document.getElementsByClassName('barchart');
+  Array.from(occupancyCharts).forEach(chart => {
+    const chartId = chart.id.toLowerCase(); // Convert chart ID to lowercase for comparison
+
+    if (chartId.includes(state.toLowerCase())) {
+      chart.style.display = 'inline-block';
+    } else {
+      chart.style.display = 'none';
+    }
+  });
+
+
+  }
+
+const todayChartBtn = document.getElementById("todayChartBtn");
+const dailyAvgChartBtn = document.getElementById("dailyAvgChartBtn");
+todayChartBtn.addEventListener('click',()=>{showChart('today')});
+dailyAvgChartBtn.addEventListener('click',()=>{showChart('dailyAvg')});
+
+
+async function getGeocode(){
+  const startLoc = document.getElementById('startLoc');
+  //startLoc_value = startLoc.value;
+  const url = 'https://maps.googleapis.com/maps/api/geocode/json?address=UCD,&key=AIzaSyAX_iqnLB8j7JggiCSHd-pm6RDBBeSbRU0';
+
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error("Failed to fetch data.");
+  }
+
+  const data = await response.json();
+  console.log(data);
+  if(data.status==='OK'){
+    const results = data['results'][0];
+    const loc = results['geometry']['location'];
+    console.log(loc);
+  }
+  
+}
+
+await getGeocode();
 
 await getOverlayDate();
 await initWeather();
