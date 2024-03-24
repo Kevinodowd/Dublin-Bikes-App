@@ -248,15 +248,7 @@ async function generateIcon(station, bikeOrSpace) {
 
   // Marker event listener for mouseover
   marker.addListener("gmp-click", () => {
-    // document.getElementById("temperature").innerText = ` ${Math.floor(
-    //   station[11] - 273.15
-    // )} °C`;
-    // document.getElementById(
-    //   "icon"
-    // ).innerHTML = `<img class="weathericon" src=https://openweathermap.org/img/wn/${station[10]}@2x.png>`;
-    // document.getElementById("weather").innerText = `${station[8]}: `;
-    // document.getElementById("description").innerText = station[9];
-    //infoWindow.close();
+    
 
     map.setZoom(17);
 
@@ -349,7 +341,7 @@ function generateTodayBarChart(data_input, barchartSection) {
 }
 
 function generateAvgBarChart(dailyAvgData, barchartSection) {
-  let trace1 = {
+  if(data_input.length > 0){let trace1 = {
     x: [],
     y: [],
     name: "bike",
@@ -379,10 +371,12 @@ function generateAvgBarChart(dailyAvgData, barchartSection) {
     title: "average occupancy",
     font: { size: 15 },
     barmode: "stack",
-    width:500,
+    // width:500,
   };
 
-  Plotly.newPlot(barchartSection, data, layout);
+  Plotly.react(barchartSection, data, layout);}else{
+    document.getElementById(barchartSection).innerHTML = `<p>Do not have average data...</p>`;
+  }
 }
 
 async function generatePredictBarchart(){
