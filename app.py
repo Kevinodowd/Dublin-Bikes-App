@@ -2,6 +2,7 @@ from flask import Flask,render_template,jsonify
 from scraper import sqlEngine
 import pandas as pd
 import mysql.connector
+import requests
 
 app = Flask(__name__,static_url_path = '')
 app.config.from_object('config')
@@ -73,6 +74,18 @@ def dublinWeather():
     currentWeather_json = cursor.fetchall()
 
     return currentWeather_json
+
+@app.route('/searchLocation/<loc>')
+def searchLocation(loc):
+    r = requests.get("https://maps.googleapis.com/maps/api/place/findplacefromtext/json",
+        params={
+            "fields": "formatted_address,name,geometry",
+            "input": loc,
+            "inputtype": "textquery",
+            "locationbias": "circle:100000@53.34982,-6.2603", #100km from dublin
+            "key": "AIzaSyBqVFiTmghTjDgdJQG11k3VXyLWdpZT4VA"
+        })
+    return r.json()
 
 # def get_CurrentWeather(engine):
 #     #engine = generate_mysqlEnginelocal('dbikes')

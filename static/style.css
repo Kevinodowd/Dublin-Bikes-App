@@ -86,7 +86,7 @@ body {
 #buttonContainer{
   position: absolute;
   z-index: 10;
-  top: 6%;
+  top: 8%;
   right: 10px;
   width: 200px;
 }
