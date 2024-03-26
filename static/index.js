@@ -305,6 +305,7 @@ function generateTodayBarChart(data_input, barchartSection) {
       y: [],
       name: "bike",
       type: "bar",
+      marker: { color: "rgb(29, 200, 63)" },
     };
 
     var trace2 = {
@@ -312,6 +313,7 @@ function generateTodayBarChart(data_input, barchartSection) {
       y: [],
       name: "space",
       type: "bar",
+      marker: { color: "rgb(18, 95, 230)" },
     };
 
     data_input.forEach((row) => {
@@ -327,10 +329,9 @@ function generateTodayBarChart(data_input, barchartSection) {
       title: "today's occupancy",
       font: { size: 15 },
       barmode: "stack",
-      width: 500,
     };
 
-    Plotly.newPlot(barchartSection, data, layout);
+    Plotly.react(barchartSection, data, layout);
   } else {
     document.getElementById(
       barchartSection

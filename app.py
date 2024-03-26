@@ -3,6 +3,7 @@ from scraper import sqlEngine
 import pandas as pd
 import mysql.connector
 
+
 app = Flask(__name__,static_url_path = '')
 app.config.from_object('config')
 
@@ -21,6 +22,7 @@ mysql_config = {
     'database': 'dbikes'
 }
 
+
 @app.route('/')
 def root():
     return render_template("default.html")
@@ -28,8 +30,8 @@ def root():
 @app.route('/stations')
 def stations():
 
-    connection = mysql.connector.connect(**mysql_config)
-    cursor = connection.cursor()
+    # connection = mysql.connector.connect(**mysql_config)
+    # cursor = connection.cursor()
     sqlCommand = """
    select s.stationId,s.name,s.address,s.latitude,s.longtitude,s.banking,a.bikeNum,
     a.bikeStands,a.fetchTime,a.lastUpdate
@@ -38,8 +40,9 @@ def stations():
 	order by a.fetchTime desc,a.stationId
     limit 114;
         """
-    cursor.execute(sqlCommand)
-    stations_json = cursor.fetchall()
+    # cursor.execute(sqlCommand)
+    # stations_json = cursor.fetchall()
+    stations_json = sqlEngine.connect_to_rds(sqlCommand)
 
     return stations_json
 
@@ -47,30 +50,24 @@ def stations():
 def station_availability(station_id):
     # Connect to the database
     try:
-        connection = mysql.connector.connect(**mysql_config)
-        cursor = connection.cursor()
-        cursor.execute(f'SELECT * FROM availability WHERE stationId = {station_id}')
-        availability_data = cursor.fetchall()
+        sqlCommand = f'SELECT * FROM availability WHERE stationId = {station_id}'
+        availability_data = sqlEngine.connect_to_rds(sqlCommand)
         # Assuming you have a way to convert the row data to a dictionary or you fetch it as such
         # If your data is not already a dict, you will need to convert it
         #availability_dict = [dict(row) for row in availability_data]
-        return jsonify(availability_data)
+        return availability_data
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-    finally:
-        cursor.close()
-        connection.close()
+
 
 
 @app.route('/weather')
 def dublinWeather():
-    connection = mysql.connector.connect(**mysql_config)
-    cursor = connection.cursor()
+
     sqlCommand = """
         select * from currentWeather order by fetchTime desc limit 1;
         """
-    cursor.execute(sqlCommand)
-    currentWeather_json = cursor.fetchall()
+    currentWeather_json = sqlEngine.connect_to_rds(sqlCommand)
 
     return currentWeather_json
 
