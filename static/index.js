@@ -7,8 +7,7 @@ const { Map, InfoWindow } = await google.maps.importLibrary("maps");
 const { AdvancedMarkerElement, PinElement, AdvancedMarkerClickEvent } =
   await google.maps.importLibrary("marker");
 
-  const { Place } = await google.maps.importLibrary("places");
-
+const { Place } = await google.maps.importLibrary("places");
 
 let currentMarkers = [];
 
@@ -18,8 +17,6 @@ const stations_json = await fetchStations();
 
 const bikeBtn = document.getElementById("availableBikes");
 const spaceBtn = document.getElementById("availableSpaces");
-
-
 
 function clearMarkers() {
   currentMarkers.forEach((marker) => {
@@ -55,7 +52,6 @@ async function initMap(stations_json) {
       zoom: 13.5,
       center: position,
       mapId: "ca9c8053cd850a9c",
-      
     });
 
     console.log("generate a map.");
@@ -248,8 +244,6 @@ async function generateIcon(station, bikeOrSpace) {
 
   // Marker event listener for mouseover
   marker.addListener("gmp-click", () => {
-    
-
     map.setZoom(17);
 
     map.setCenter(marker.position);
@@ -274,7 +268,8 @@ async function generateIcon(station, bikeOrSpace) {
 
     infoWindow.setContent(infoWindowContent);
     infoWindow.open(marker.map, marker);
-  });}
+  });
+}
 
 //   async function showLeftBar() {
 //     mapClass = document.getElementById("map").classList;
@@ -304,49 +299,52 @@ window.generateOccupancy = async (station_id) => {
 };
 
 function generateTodayBarChart(data_input, barchartSection) {
-  if(data_input.length > 0){let trace1 = {
-    x: [],
-    y: [],
-    name: "bike",
-    type: "bar",
-  };
+  if (data_input.length > 0) {
+    let trace1 = {
+      x: [],
+      y: [],
+      name: "bike",
+      type: "bar",
+    };
 
-  var trace2 = {
-    x: [],
-    y: [],
-    name: "space",
-    type: "bar",
-  };
+    var trace2 = {
+      x: [],
+      y: [],
+      name: "space",
+      type: "bar",
+    };
 
-  data_input.forEach((row) => {
-    trace1["x"].push(timestampToDatetime(row[5] * 1000));
-    trace1["y"].push(row[4]);
-    trace2["y"].push(row[3]);
-  });
+    data_input.forEach((row) => {
+      trace1["x"].push(timestampToDatetime(row[5] * 1000));
+      trace1["y"].push(row[4]);
+      trace2["y"].push(row[3]);
+    });
 
-  trace2["x"] = trace1["x"];
-  const data = [trace1, trace2];
+    trace2["x"] = trace1["x"];
+    const data = [trace1, trace2];
 
-  const layout = {
-    title: "today's occupancy",
-    font: { size: 15 },
-    barmode: "stack",
-    width:500,
-  };
+    const layout = {
+      title: "today's occupancy",
+      font: { size: 15 },
+      barmode: "stack",
+      width: 500,
+    };
 
-  Plotly.newPlot(barchartSection, data, layout);}else{
-    document.getElementById(barchartSection).innerHTML = `<p>Do not have today's data...</p>`;
+    Plotly.newPlot(barchartSection, data, layout);
+  } else {
+    document.getElementById(
+      barchartSection
+    ).innerHTML = `<p>Do not have today's data...</p>`;
   }
-  
 }
 
 function generateAvgBarChart(dailyAvgData, barchartSection) {
-  if(data_input.length > 0){let trace1 = {
+  let trace1 = {
     x: [],
     y: [],
     name: "bike",
     type: "bar",
-    marker: {color: 'rgb(29, 200, 63)'}
+    marker: { color: "rgb(29, 200, 63)" },
   };
 
   var trace2 = {
@@ -354,7 +352,7 @@ function generateAvgBarChart(dailyAvgData, barchartSection) {
     y: [],
     name: "space",
     type: "bar",
-    marker: {color: 'rgb(18, 95, 230)'}
+    marker: { color: "rgb(18, 95, 230)" },
   };
 
   Object.keys(dailyAvgData).forEach((date) => {
@@ -374,16 +372,10 @@ function generateAvgBarChart(dailyAvgData, barchartSection) {
     // width:500,
   };
 
-  Plotly.react(barchartSection, data, layout);}else{
-    document.getElementById(barchartSection).innerHTML = `<p>Do not have average data...</p>`;
-  }
+  Plotly.react(barchartSection, data, layout);
 }
 
-async function generatePredictBarchart(){
-
-};
-
-
+async function generatePredictBarchart() {}
 
 async function getTodayAvailabiliy(data) {
   const ct = Date.now();
@@ -436,51 +428,52 @@ async function calculateDailyBikeNumbers(data) {
   return dailyCounts;
 }
 
-function showChart(state){
+function showChart(state) {
   console.log("function showChart is triggered...");
 
   //adjust the charts' state
-  const occupancyCharts = document.getElementsByClassName('barchart');
-  Array.from(occupancyCharts).forEach(chart => {
+  const occupancyCharts = document.getElementsByClassName("barchart");
+  Array.from(occupancyCharts).forEach((chart) => {
     const chartId = chart.id.toLowerCase(); // Convert chart ID to lowercase for comparison
 
     if (chartId.includes(state.toLowerCase())) {
-      chart.style.display = 'inline-block';
+      chart.style.display = "inline-block";
     } else {
-      chart.style.display = 'none';
+      chart.style.display = "none";
     }
   });
-
-
-  }
+}
 
 const todayChartBtn = document.getElementById("todayChartBtn");
 const dailyAvgChartBtn = document.getElementById("dailyAvgChartBtn");
-todayChartBtn.addEventListener('click',()=>{showChart('today')});
-dailyAvgChartBtn.addEventListener('click',()=>{showChart('dailyAvg')});
+todayChartBtn.addEventListener("click", () => {
+  showChart("today");
+});
+dailyAvgChartBtn.addEventListener("click", () => {
+  showChart("dailyAvg");
+});
 
+// async function getGeocode(){
+//   const startLoc = document.getElementById('startLoc');
+//   //startLoc_value = startLoc.value;
+//   const url = 'https://maps.googleapis.com/maps/api/geocode/json?address=UCD,&key=AIzaSyAX_iqnLB8j7JggiCSHd-pm6RDBBeSbRU0';
 
-async function getGeocode(){
-  const startLoc = document.getElementById('startLoc');
-  //startLoc_value = startLoc.value;
-  const url = 'https://maps.googleapis.com/maps/api/geocode/json?address=UCD,&key=AIzaSyAX_iqnLB8j7JggiCSHd-pm6RDBBeSbRU0';
+//   const response = await fetch(url);
+//   if (!response.ok) {
+//     throw new Error("Failed to fetch data.");
+//   }
 
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error("Failed to fetch data.");
-  }
+//   const data = await response.json();
+//   console.log(data);
+//   if(data.status==='OK'){
+//     const results = data['results'][0];
+//     const loc = results['geometry']['location'];
+//     console.log(loc);
+//   }
 
-  const data = await response.json();
-  console.log(data);
-  if(data.status==='OK'){
-    const results = data['results'][0];
-    const loc = results['geometry']['location'];
-    console.log(loc);
-  }
-  
-}
+// }
 
-await getGeocode();
+//await getGeocode();
 
 await getOverlayDate();
 await initWeather();
