@@ -33,17 +33,21 @@
             value="Submit"
             onclick="goToLocation(startLoc.value, endLoc.value)"
           />
-          <input type="reset" value="Reset" />
+          <input
+            type="reset"
+            value="Reset"
+            onclick="return resetLocationInputs()"
+          />
         </p>
       </div>
       <div id="barchartContainer">
-        <h3>Occupancy Statistics:</h3>
-        <button class="occupancyBtn" id="todayChartBtn" onlick="showChart('today')">today</button>
-        <button class="occupancyBtn" id="dailyAvgChartBtn" onlick="showChart('dailyAvg')">daily average</button>
-        <button class="occupancyBtn">next 6 hours predict</button>
-        <div id="todayChart" class="barchart"></div>
-        <div id="dailyAvgChart" class="barchart"></div>
-        <div id="predictChart" class="barchart"></div>
+          <h3>Occupancy Statistics:</h3>
+          <button class="occupancyBtn" id="todayChartBtn" onlick="showChart('today')">today</button>
+          <button class="occupancyBtn" id="dailyAvgChartBtn" onlick="showChart('dailyAvg')">daily average</button>
+          <button class="occupancyBtn">next 6 hours predict</button>
+          <div id="todayChart" class="barchart"></div>
+          <div id="dailyAvgChart" class="barchart"></div>
+          <div id="predictChart" class="barchart"></div>
       </div>
     </div>
 
