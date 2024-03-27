@@ -1,15 +1,12 @@
 // Initialize and add the map
 let map;
+let currentMarkers = [];
 
-//
 const { Map, InfoWindow } = await google.maps.importLibrary("maps");
-//AdvancedMarkerElement
 const { AdvancedMarkerElement, PinElement, AdvancedMarkerClickEvent } =
   await google.maps.importLibrary("marker");
 
 const { Place } = await google.maps.importLibrary("places");
-
-let currentMarkers = [];
 
 const infoWindow = new InfoWindow();
 
@@ -17,9 +14,25 @@ const stations_json = await fetchStations();
 
 const bikeBtn = document.getElementById("availableBikes");
 const spaceBtn = document.getElementById("availableSpaces");
+const startLocationInput = document.getElementById("startLoc");
+const endLocationInput = document.getElementById("endLoc");
+
+const STATION_STRUCTURE = {
+  ID: 0,
+  NAME: 1,
+  ADDRESS: 2,
+  LATITUDE: 3,
+  LONGITUDE: 4,
+  BANKING: 5,
+  BIKE_NUM: 6,
+  BIKE_STANDS: 7,
+  FETCH_TIME: 8,
+  LAST_UPDATE: 9
+};
 
 function clearMarkers() {
   currentMarkers.forEach((marker) => {
+    marker.map = null; // remove marker from map
     marker = null;
   });
   currentMarkers = [];
@@ -51,14 +64,14 @@ async function initMap(stations_json) {
     map = new Map(document.getElementById("map"), {
       zoom: 13.5,
       center: position,
-      mapId: "ca9c8053cd850a9c",
+      mapId: "Dublin",
     });
 
     console.log("generate a map.");
 
-    stations_json.forEach((station) => {
-      const marker = generateIcon(station);
-      console.log(marker.gmpClickable);
+    // Add markers to current markers list. Async in order to add the marker, not the promise for each
+    stations_json.forEach(async (station) => {
+      const marker = await generateIcon(station, "bike");
       currentMarkers.push(marker);
     });
 
@@ -110,8 +123,6 @@ async function getOverlayDate() {
       <p style="margin-block: 0em;">Current time: ${currentTime}</p>`;
   document.getElementById("overlayInfo").innerHTML += overlayDate;
 }
-
-//document.getElementById("overlayInfo").innerHTML = getOverlayDate();
 
 async function initWeather(weather) {
   // Default weather details for homepage
@@ -169,9 +180,9 @@ async function fetchWeather() {
   }
 }
 
-function IconColor(station, bikeOrSpace) {
-  if (bikeOrSpace == "space") {
-    const spaceLeft = station[7];
+function IconColor(station, type = "bike") {
+  if (type == "space") {
+    const spaceLeft = station[STATION_STRUCTURE.BIKE_STANDS];
     if (spaceLeft * 1 === 0) {
       return new PinElement({
         glyphColor: "white",
@@ -185,8 +196,32 @@ function IconColor(station, bikeOrSpace) {
         borderColor: "#125FE6",
       });
     }
+  } else if (type === "start") {
+    return new PinElement({
+      glyphColor: "white",
+      background: "red",
+      borderColor: "red",
+    });
+  } else if (type === "end") {
+    return new PinElement({
+      glyphColor: "white",
+      background: "purple",
+      borderColor: "purple",
+    });
+  } else if (type === "nearToStart") {
+    return new PinElement({
+      glyphColor: "white",
+      background: "blue",
+      borderColor: "blue",
+    });
+  } else if (type === "nearToEnd") {
+    return new PinElement({
+      glyphColor: "white",
+      background: "yellow",
+      borderColor: "yellow",
+    });
   } else {
-    const bikeLeft = station[6];
+    const bikeLeft = station[STATION_STRUCTURE.BIKE_NUM];
     if (bikeLeft * 1 === 0) {
       return new PinElement({
         glyphColor: "white",
@@ -222,53 +257,58 @@ function changeIcon(stations_json) {
     target = "space";
   }
 
-  stations_json.forEach((station) => {
+  stations_json.forEach(async (station) => {
     //console.log("Enetering the loop");
-    const marker = generateIcon(station, target);
+    const marker = await generateIcon(station, target);
     currentMarkers.push(marker);
   });
 }
 
-async function generateIcon(station, bikeOrSpace) {
-  const position = { lat: station[3], lng: station[4] };
+async function generateIcon(station, type) {
+  const position = { lat: station[STATION_STRUCTURE.LATITUDE], lng: station[STATION_STRUCTURE.LONGITUDE] };
 
-  const pinBackground = IconColor(station, bikeOrSpace);
+  const pinBackground = IconColor(station, type);
 
   const marker = new AdvancedMarkerElement({
     map: map,
     gmpClickable: true,
     position: position,
-    title: station[2],
+    title: station[STATION_STRUCTURE.ADDRESS],
     content: pinBackground.element,
   });
 
   // Marker event listener for mouseover
-  marker.addListener("gmp-click", () => {
-    map.setZoom(17);
+  if (type != "start" && type != "end") {
+    marker.addListener("gmp-click", () => {
+      map.setZoom(17);
 
-    map.setCenter(marker.position);
-    let cardAccepted = "";
-    if (station[5] == 1) {
-      cardAccepted = "Yes";
-    } else {
-      cardAccepted = "No";
-    }
-    const infoWindowContent = `
-    <div class="infoWindowContainer" id=${station[0]}>
-    <h3>No.${station[0]} ${marker.title}</h3>
-    <p>credit card accepted: ${cardAccepted}</p>
-    <p>available bikes: ${station[6]}</p>
-    <p>available spaces: ${station[7]}</p>
-    <p>last update at: ${timestampToDatetime(station[9] * 1000)}</p>
-    <button class="occupancy" onclick ="generateOccupancy(${
-      station[0]
-    })">More details...</button>
-    </div>
-    `;
+      map.setCenter(marker.position);
+      let cardAccepted = "";
+      if (station[STATION_STRUCTURE.BANKING] == 1) {
+        cardAccepted = "Yes";
+      } else {
+        cardAccepted = "No";
+      }
+      const infoWindowContent = `
+      <div class="infoWindowContainer" id=${station[STATION_STRUCTURE.ID]}>
+      <h3>No.${station[STATION_STRUCTURE.ID]} ${marker.title}</h3>
+      <p>credit card accepted: ${cardAccepted}</p>
+      <p>available bikes: ${station[STATION_STRUCTURE.BIKE_NUM]}</p>
+      <p>available spaces: ${station[STATION_STRUCTURE.BIKE_STANDS]}</p>
+      <p>last update at: ${timestampToDatetime(station[STATION_STRUCTURE.LAST_UPDATE] * 1000)}</p>
+      <button class="occupancy" onclick ="generateOccupancy(${
+        station[STATION_STRUCTURE.ID]
+      })">More details...</button>
+      </div>
+      `;
 
-    infoWindow.setContent(infoWindowContent);
-    infoWindow.open(marker.map, marker);
-  });
+      infoWindow.setContent(infoWindowContent);
+      infoWindow.open(marker.map, marker);
+    });
+  }
+
+  
+  return marker;
 }
 
 //   async function showLeftBar() {
@@ -287,7 +327,6 @@ window.generateOccupancy = async (station_id) => {
     const availability = await response.json();
 
     const todayAvailablity = await getTodayAvailabiliy(availability);
-    // console.log(todayAvailablity);
     const dailyAvg = await calculateDailyBikeNumbers(availability);
 
     generateTodayBarChart(todayAvailablity, "todayChart");
@@ -300,43 +339,43 @@ window.generateOccupancy = async (station_id) => {
 
 function generateTodayBarChart(data_input, barchartSection) {
   if (data_input.length > 0) {
-    let trace1 = {
-      x: [],
-      y: [],
-      name: "bike",
-      type: "bar",
-      marker: { color: "rgb(29, 200, 63)" },
-    };
+  let trace1 = {
+    x: [],
+    y: [],
+    name: "bike",
+    type: "bar",
+    marker: { color: "rgb(29, 200, 63)" },
+  };
 
-    var trace2 = {
-      x: [],
-      y: [],
-      name: "space",
-      type: "bar",
-      marker: { color: "rgb(18, 95, 230)" },
-    };
+  var trace2 = {
+    x: [],
+    y: [],
+    name: "space",
+    type: "bar",
+    marker: { color: "rgb(18, 95, 230)" },
+  };
 
-    data_input.forEach((row) => {
-      trace1["x"].push(timestampToDatetime(row[5] * 1000));
-      trace1["y"].push(row[4]);
-      trace2["y"].push(row[3]);
-    });
+  data_input.forEach((row) => {
+    trace1["x"].push(timestampToDatetime(row[5] * 1000));
+    trace1["y"].push(row[4]);
+    trace2["y"].push(row[3]);
+  });
 
-    trace2["x"] = trace1["x"];
-    const data = [trace1, trace2];
+  trace2["x"] = trace1["x"];
+  const data = [trace1, trace2];
 
-    const layout = {
-      title: "today's occupancy",
-      font: { size: 15 },
-      barmode: "stack",
-    };
+  const layout = {
+    title: "today's occupancy",
+    font: { size: 15 },
+    barmode: "stack",
+  };
 
-    Plotly.react(barchartSection, data, layout);
-  } else {
-    document.getElementById(
-      barchartSection
-    ).innerHTML = `<p>Do not have today's data...</p>`;
-  }
+  Plotly.react(barchartSection, data, layout);
+} else {
+  document.getElementById(
+    barchartSection
+  ).innerHTML = `<p>Do not have today's data...</p>`;
+}
 }
 
 function generateAvgBarChart(dailyAvgData, barchartSection) {
@@ -370,7 +409,6 @@ function generateAvgBarChart(dailyAvgData, barchartSection) {
     title: "average occupancy",
     font: { size: 15 },
     barmode: "stack",
-    // width:500,
   };
 
   Plotly.react(barchartSection, data, layout);
@@ -453,6 +491,167 @@ todayChartBtn.addEventListener("click", () => {
 dailyAvgChartBtn.addEventListener("click", () => {
   showChart("dailyAvg");
 });
+
+// async function getGeocode(){
+//   const startLoc = document.getElementById('startLoc');
+//   //startLoc_value = startLoc.value;
+//   const url = 'https://maps.googleapis.com/maps/api/geocode/json?address=UCD,&key=AIzaSyAX_iqnLB8j7JggiCSHd-pm6RDBBeSbRU0';
+
+//   const response = await fetch(url);
+//   if (!response.ok) {
+//     throw new Error("Failed to fetch data.");
+//   }
+
+//   const data = await response.json();
+//   console.log(data);
+//   if(data.status==='OK'){
+//     const results = data['results'][0];
+//     const loc = results['geometry']['location'];
+//     console.log(loc);
+//   }
+
+// }
+
+//await getGeocode();
+
+/**
+ * Reset the location input fields
+ */
+window.resetLocationInputs = async function() {
+  startLocationInput.value = "";
+  endLocationInput.value = "";
+  clearMarkers();
+  stations_json.forEach(async (station) => {
+    const marker = await generateIcon(station, "bike");
+    currentMarkers.push(marker);
+  });
+}
+
+/**
+ * Find nearest locations and filter map
+ *
+ * @param {string} startLocString start location search string
+ * @param {string} endLocString end location search string
+ */
+window.goToLocation = async function(startLocString, endLocString) {
+  if (startLocString?.length > 0 && endLocString?.length > 0) {
+    const possibleStartLocations = await fetchLocation(startLocString);
+    const possibleEndLocations = await fetchLocation(endLocString);
+
+    if (possibleStartLocations?.candidates?.length > 0 && possibleEndLocations?.candidates?.length > 0 ) {
+      // Take the first candidate as our location
+      const startLocation = possibleStartLocations.candidates[0];
+      const endLocation = possibleEndLocations.candidates[0];
+
+      // Replace inputs with the real location names from api
+      startLocationInput.value = startLocation.name;
+      endLocationInput.value = endLocation.name;
+
+      // Get sorted list of places with distances from the given location
+      const locationsNearStartLocation = getDistancesToLocation(startLocation.geometry.location.lat, startLocation.geometry.location.lng).slice(0, 3);
+      const locationsNearEndLocation = getDistancesToLocation(endLocation.geometry.location.lat, endLocation.geometry.location.lng).slice(0, 3);
+      
+      clearMarkers();
+
+      const startMarker = await generateIcon({
+        [STATION_STRUCTURE.ID]: "startMarker",
+        [STATION_STRUCTURE.ADDRESS]: startLocation.name,
+        [STATION_STRUCTURE.LATITUDE]: startLocation.geometry.location.lat,
+        [STATION_STRUCTURE.LONGITUDE]: startLocation.geometry.location.lng
+      }, "start");
+      currentMarkers.push(startMarker);
+
+      const endMarker = await generateIcon({
+        [STATION_STRUCTURE.ID]: "endMarker",
+        [STATION_STRUCTURE.ADDRESS]: endLocation.name,
+        [STATION_STRUCTURE.LATITUDE]: endLocation.geometry.location.lat,
+        [STATION_STRUCTURE.LONGITUDE]: endLocation.geometry.location.lng
+      }, "end");
+      currentMarkers.push(endMarker);
+
+      locationsNearStartLocation.forEach(async (station) => {
+        const marker = await generateIcon(station.station, "nearToStart");
+        currentMarkers.push(marker);
+      });
+
+      locationsNearEndLocation.forEach(async (station) => {
+        const marker = await generateIcon(station.station, "nearToEnd");
+        currentMarkers.push(marker);
+      });
+    } else {
+      // No location results!
+      alert("Enter values before submit");
+    }
+  } else {
+    alert("Enter values before submit");
+  }
+}
+
+/**
+ * Convert from degrees to radians
+ *
+ * @param {number} degrees the degrees
+ * @returns {number} the radians
+ */
+function deg2rad(degrees) {
+  // SOURCE https://stackoverflow.com/a/27943
+  return degrees * (Math.PI / 180)
+}
+
+/**
+ * Get distance between two locations, given latitude and longitude values
+ *
+ * @param {number} lat1 latitude of the first location
+ * @param {number} lon1 longitude of the first location
+ * @param {number} lat2 latitude of the second location
+ * @param {number} lon2 longitude of the second location
+ * @returns {number} the distance between the two locations
+ */
+function getDistance(lat1, lon1, lat2, lon2) {
+  // SOURCE https://stackoverflow.com/a/27943
+  const earthRadius = 6371; // Radius of the earth in km
+  const dLat = deg2rad(lat2-lat1);
+  const dLon = deg2rad(lon2-lon1);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  const d = earthRadius * c; // Distance in km
+  return d;
+}
+
+/**
+ * Get a list of stations, each with a distance from the lat/long given
+ *
+ * @param {number} lat the latitude of the location to compare station to
+ * @param {number} long the longitude of the location to compare station to
+ * @returns a list of stations
+ */
+function getDistancesToLocation(lat, long) {
+  const distances = stations_json.map(station => {
+    return {
+      station: station,
+      // Get distance from given location to station location
+      distance: getDistance(lat, long, station[STATION_STRUCTURE.LATITUDE], station[STATION_STRUCTURE.LONGITUDE])
+    }
+  });
+  // Smallest to largest
+  return distances.sort((a, b) => a.distance - b.distance);
+}
+
+async function fetchLocation(loc) {
+  try {
+    const response = await fetch("/searchLocation/" + loc);
+    if (!response.ok) {
+      throw new Error("Failed to fetch data.");
+    }
+    return await response.json();
+  } catch (error) {
+    console.log("error:", error);
+    throw error;
+  }
+}
 
 // async function getGeocode(){
 //   const startLoc = document.getElementById('startLoc');
