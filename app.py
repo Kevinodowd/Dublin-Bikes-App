@@ -18,7 +18,7 @@ app.config.from_object('config')
 mysql_config = {
     'host': 'localhost',
     'user': 'root',
-    'password': '15040748',
+    'password': '',
     'database': 'dbikes'
 }
 
@@ -93,3 +93,15 @@ if __name__ == '__main__':
 #     stations_df = pd.read_sql("SELECT * FROM stations",con=engine)
 #     stations_json = stations_df.to_dict(orient='records')
 #     return stations_json
+    
+@app.route('/searchLocation/<loc>')
+def searchLocation(loc):
+    r = requests.get("https://maps.googleapis.com/maps/api/place/findplacefromtext/json",
+        params={
+            "fields": "formatted_address,name,geometry",
+            "input": loc,
+            "inputtype": "textquery",
+            "locationbias": "circle:100000@53.34982,-6.2603", #100km from dublin
+            "key": "AIzaSyBqVFiTmghTjDgdJQG11k3VXyLWdpZT4VA"
+        })
+    return r.json()
