@@ -6,21 +6,19 @@
 /*
  * Optional: Makes the sample page fill the window. 
  */
- html,
- body {
-   height: 100%;
-   margin: 0;
-   padding: 0;
-   display: flex;
-   box-sizing: border-box;
- }
-
-
-
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  box-sizing: border-box;
+}
 
 #form {
   width: 280px;
   margin: 1rem;
+  height: 40vh;
 }
 
 #form input[type="text"],
@@ -28,11 +26,12 @@
 #form input[type="submit"],
 #form input[type="reset"] {
   border: none; /* Removed border */
-  background-color: #2196f3; /* Blue background color */
+  background-color: #2d2c2c; /* Blue background color */
   color: white;
   padding: 0.5rem;
   margin-bottom: 0.5rem;
   border-radius: 5px;
+  width: 20vw;
 }
 
 #map-container {
@@ -41,7 +40,6 @@
   flex-direction: column;
   position: relative;
 }
-
 
 #map {
   height: calc(100% - 6vh); /* Adjusted height */
@@ -53,6 +51,7 @@
   display: flex;
   justify-content: center;
   margin-top: 0.5rem;
+  background-color: #2d2c2c;
 }
 
 #buttonContainer button {
@@ -70,13 +69,13 @@
   background-color: #0e75b5; /* Darker blue on hover */
 }
 
-#availableBikes{
-  background-color: #1DC83F;
+#availableBikes {
+  background-color: #1dc83f;
 }
 
-#availableSpaces{
-  background-color: #125FE6;
-  color:white;
+#availableSpaces {
+  background-color: #125fe6;
+  color: white;
 }
 
 .disabled {
@@ -86,15 +85,15 @@
 
 #overlayInfo {
   height: 6vh; /* Smaller height */
-  background-color: rgba(255, 255, 255, 0.7); /* Transparent white */
+  background-color: #2d2c2c; /* Transparent white */
+  color: white;
   display: flex;
   justify-content: center;
   align-items: center;
   border-bottom: 2px solid #ddd;
 }
 
-
-#leftbar{
+#leftbar {
   height: 100%;
   width: 25vw;
   display: flex;
@@ -104,16 +103,16 @@
   z-index: 100;
 }
 
-.occupancyBtn{
+.occupancyBtn {
   display: inline-block;
 }
 
-.barchart{
+.barchart {
   display: none;
   width: 25vw;
+  height: 40vh;
 }
 
-#todayChart{
+#todayChart {
   display: inline-block;
 }
-

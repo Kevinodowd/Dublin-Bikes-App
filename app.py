@@ -3,6 +3,7 @@ from scraper import sqlEngine
 import pandas as pd
 import mysql.connector
 import requests
+from config import *
 
 
 app = Flask(__name__,static_url_path = '')

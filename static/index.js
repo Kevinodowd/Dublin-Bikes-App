@@ -27,7 +27,7 @@ const STATION_STRUCTURE = {
   BIKE_NUM: 6,
   BIKE_STANDS: 7,
   FETCH_TIME: 8,
-  LAST_UPDATE: 9
+  LAST_UPDATE: 9,
 };
 
 function clearMarkers() {
@@ -65,6 +65,7 @@ async function initMap(stations_json) {
       zoom: 13.5,
       center: position,
       mapId: "Dublin",
+      mapId: "ca9c8053cd850a9c",
     });
 
     console.log("generate a map.");
@@ -113,7 +114,7 @@ async function getOverlayDate() {
   const now = new Date();
   const year = now.getFullYear();
   const month = now.toLocaleString("en-US", { month: "long" });
-  const day = formatNumberToString(now.getDay());
+  const day = formatNumberToString(now.getDate());
   const hour = formatNumberToString(now.getHours());
   const minute = formatNumberToString(now.getMinutes());
 
@@ -265,7 +266,10 @@ function changeIcon(stations_json) {
 }
 
 async function generateIcon(station, type) {
-  const position = { lat: station[STATION_STRUCTURE.LATITUDE], lng: station[STATION_STRUCTURE.LONGITUDE] };
+  const position = {
+    lat: station[STATION_STRUCTURE.LATITUDE],
+    lng: station[STATION_STRUCTURE.LONGITUDE],
+  };
 
   const pinBackground = IconColor(station, type);
 
@@ -295,7 +299,9 @@ async function generateIcon(station, type) {
       <p>credit card accepted: ${cardAccepted}</p>
       <p>available bikes: ${station[STATION_STRUCTURE.BIKE_NUM]}</p>
       <p>available spaces: ${station[STATION_STRUCTURE.BIKE_STANDS]}</p>
-      <p>last update at: ${timestampToDatetime(station[STATION_STRUCTURE.LAST_UPDATE] * 1000)}</p>
+      <p>last update at: ${timestampToDatetime(
+        station[STATION_STRUCTURE.LAST_UPDATE] * 1000
+      )}</p>
       <button class="occupancy" onclick ="generateOccupancy(${
         station[STATION_STRUCTURE.ID]
       })">More details...</button>
@@ -307,7 +313,6 @@ async function generateIcon(station, type) {
     });
   }
 
-  
   return marker;
 }
 
@@ -339,43 +344,43 @@ window.generateOccupancy = async (station_id) => {
 
 function generateTodayBarChart(data_input, barchartSection) {
   if (data_input.length > 0) {
-  let trace1 = {
-    x: [],
-    y: [],
-    name: "bike",
-    type: "bar",
-    marker: { color: "rgb(29, 200, 63)" },
-  };
+    let trace1 = {
+      x: [],
+      y: [],
+      name: "bike",
+      type: "bar",
+      marker: { color: "rgb(29, 200, 63)" },
+    };
 
-  var trace2 = {
-    x: [],
-    y: [],
-    name: "space",
-    type: "bar",
-    marker: { color: "rgb(18, 95, 230)" },
-  };
+    var trace2 = {
+      x: [],
+      y: [],
+      name: "space",
+      type: "bar",
+      marker: { color: "rgb(18, 95, 230)" },
+    };
 
-  data_input.forEach((row) => {
-    trace1["x"].push(timestampToDatetime(row[5] * 1000));
-    trace1["y"].push(row[4]);
-    trace2["y"].push(row[3]);
-  });
+    data_input.forEach((row) => {
+      trace1["x"].push(timestampToDatetime(row[5] * 1000));
+      trace1["y"].push(row[4]);
+      trace2["y"].push(row[3]);
+    });
 
-  trace2["x"] = trace1["x"];
-  const data = [trace1, trace2];
+    trace2["x"] = trace1["x"];
+    const data = [trace1, trace2];
 
-  const layout = {
-    title: "today's occupancy",
-    font: { size: 15 },
-    barmode: "stack",
-  };
+    const layout = {
+      title: "today's occupancy",
+      font: { size: 15 },
+      barmode: "stack",
+    };
 
-  Plotly.react(barchartSection, data, layout);
-} else {
-  document.getElementById(
-    barchartSection
-  ).innerHTML = `<p>Do not have today's data...</p>`;
-}
+    Plotly.react(barchartSection, data, layout);
+  } else {
+    document.getElementById(
+      barchartSection
+    ).innerHTML = `<p>Do not have today's data...</p>`;
+  }
 }
 
 function generateAvgBarChart(dailyAvgData, barchartSection) {
@@ -517,7 +522,7 @@ dailyAvgChartBtn.addEventListener("click", () => {
 /**
  * Reset the location input fields
  */
-window.resetLocationInputs = async function() {
+window.resetLocationInputs = async function () {
   startLocationInput.value = "";
   endLocationInput.value = "";
   clearMarkers();
@@ -525,7 +530,7 @@ window.resetLocationInputs = async function() {
     const marker = await generateIcon(station, "bike");
     currentMarkers.push(marker);
   });
-}
+};
 
 /**
  * Find nearest locations and filter map
@@ -533,12 +538,15 @@ window.resetLocationInputs = async function() {
  * @param {string} startLocString start location search string
  * @param {string} endLocString end location search string
  */
-window.goToLocation = async function(startLocString, endLocString) {
+window.goToLocation = async function (startLocString, endLocString) {
   if (startLocString?.length > 0 && endLocString?.length > 0) {
     const possibleStartLocations = await fetchLocation(startLocString);
     const possibleEndLocations = await fetchLocation(endLocString);
 
-    if (possibleStartLocations?.candidates?.length > 0 && possibleEndLocations?.candidates?.length > 0 ) {
+    if (
+      possibleStartLocations?.candidates?.length > 0 &&
+      possibleEndLocations?.candidates?.length > 0
+    ) {
       // Take the first candidate as our location
       const startLocation = possibleStartLocations.candidates[0];
       const endLocation = possibleEndLocations.candidates[0];
@@ -548,25 +556,37 @@ window.goToLocation = async function(startLocString, endLocString) {
       endLocationInput.value = endLocation.name;
 
       // Get sorted list of places with distances from the given location
-      const locationsNearStartLocation = getDistancesToLocation(startLocation.geometry.location.lat, startLocation.geometry.location.lng).slice(0, 3);
-      const locationsNearEndLocation = getDistancesToLocation(endLocation.geometry.location.lat, endLocation.geometry.location.lng).slice(0, 3);
-      
+      const locationsNearStartLocation = getDistancesToLocation(
+        startLocation.geometry.location.lat,
+        startLocation.geometry.location.lng
+      ).slice(0, 3);
+      const locationsNearEndLocation = getDistancesToLocation(
+        endLocation.geometry.location.lat,
+        endLocation.geometry.location.lng
+      ).slice(0, 3);
+
       clearMarkers();
 
-      const startMarker = await generateIcon({
-        [STATION_STRUCTURE.ID]: "startMarker",
-        [STATION_STRUCTURE.ADDRESS]: startLocation.name,
-        [STATION_STRUCTURE.LATITUDE]: startLocation.geometry.location.lat,
-        [STATION_STRUCTURE.LONGITUDE]: startLocation.geometry.location.lng
-      }, "start");
+      const startMarker = await generateIcon(
+        {
+          [STATION_STRUCTURE.ID]: "startMarker",
+          [STATION_STRUCTURE.ADDRESS]: startLocation.name,
+          [STATION_STRUCTURE.LATITUDE]: startLocation.geometry.location.lat,
+          [STATION_STRUCTURE.LONGITUDE]: startLocation.geometry.location.lng,
+        },
+        "start"
+      );
       currentMarkers.push(startMarker);
 
-      const endMarker = await generateIcon({
-        [STATION_STRUCTURE.ID]: "endMarker",
-        [STATION_STRUCTURE.ADDRESS]: endLocation.name,
-        [STATION_STRUCTURE.LATITUDE]: endLocation.geometry.location.lat,
-        [STATION_STRUCTURE.LONGITUDE]: endLocation.geometry.location.lng
-      }, "end");
+      const endMarker = await generateIcon(
+        {
+          [STATION_STRUCTURE.ID]: "endMarker",
+          [STATION_STRUCTURE.ADDRESS]: endLocation.name,
+          [STATION_STRUCTURE.LATITUDE]: endLocation.geometry.location.lat,
+          [STATION_STRUCTURE.LONGITUDE]: endLocation.geometry.location.lng,
+        },
+        "end"
+      );
       currentMarkers.push(endMarker);
 
       locationsNearStartLocation.forEach(async (station) => {
@@ -585,7 +605,7 @@ window.goToLocation = async function(startLocString, endLocString) {
   } else {
     alert("Enter values before submit");
   }
-}
+};
 
 /**
  * Convert from degrees to radians
@@ -595,7 +615,7 @@ window.goToLocation = async function(startLocString, endLocString) {
  */
 function deg2rad(degrees) {
   // SOURCE https://stackoverflow.com/a/27943
-  return degrees * (Math.PI / 180)
+  return degrees * (Math.PI / 180);
 }
 
 /**
@@ -610,12 +630,14 @@ function deg2rad(degrees) {
 function getDistance(lat1, lon1, lat2, lon2) {
   // SOURCE https://stackoverflow.com/a/27943
   const earthRadius = 6371; // Radius of the earth in km
-  const dLat = deg2rad(lat2-lat1);
-  const dLon = deg2rad(lon2-lon1);
+  const dLat = deg2rad(lat2 - lat1);
+  const dLon = deg2rad(lon2 - lon1);
   const a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
-    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    Math.cos(deg2rad(lat1)) *
+      Math.cos(deg2rad(lat2)) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   const d = earthRadius * c; // Distance in km
   return d;
@@ -629,12 +651,17 @@ function getDistance(lat1, lon1, lat2, lon2) {
  * @returns a list of stations
  */
 function getDistancesToLocation(lat, long) {
-  const distances = stations_json.map(station => {
+  const distances = stations_json.map((station) => {
     return {
       station: station,
       // Get distance from given location to station location
-      distance: getDistance(lat, long, station[STATION_STRUCTURE.LATITUDE], station[STATION_STRUCTURE.LONGITUDE])
-    }
+      distance: getDistance(
+        lat,
+        long,
+        station[STATION_STRUCTURE.LATITUDE],
+        station[STATION_STRUCTURE.LONGITUDE]
+      ),
+    };
   });
   // Smallest to largest
   return distances.sort((a, b) => a.distance - b.distance);
