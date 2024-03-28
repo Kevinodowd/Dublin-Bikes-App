@@ -2,6 +2,7 @@ from flask import Flask,render_template,jsonify
 from scraper import sqlEngine
 import pandas as pd
 import mysql.connector
+import requests
 
 
 app = Flask(__name__,static_url_path = '')
@@ -76,6 +77,17 @@ def dublinWeather():
 #     cw_df = pd.read_sql("SELECT * FROM currentWeather",con=engine)
 #     cw_df.to_json('/static/currentWeather.json',orient='records',lines=True)
 
+@app.route('/searchLocation/<loc>')
+def searchLocation(loc):
+    r = requests.get("https://maps.googleapis.com/maps/api/place/findplacefromtext/json",
+        params={
+            "fields": "formatted_address,name,geometry",
+            "input": loc,
+            "inputtype": "textquery",
+            "locationbias": "circle:100000@53.34982,-6.2603", #100km from dublin
+            "key": "AIzaSyBqVFiTmghTjDgdJQG11k3VXyLWdpZT4VA"
+        })
+    return r.json()
 
 
 if __name__ == '__main__':
@@ -94,14 +106,4 @@ if __name__ == '__main__':
 #     stations_json = stations_df.to_dict(orient='records')
 #     return stations_json
     
-@app.route('/searchLocation/<loc>')
-def searchLocation(loc):
-    r = requests.get("https://maps.googleapis.com/maps/api/place/findplacefromtext/json",
-        params={
-            "fields": "formatted_address,name,geometry",
-            "input": loc,
-            "inputtype": "textquery",
-            "locationbias": "circle:100000@53.34982,-6.2603", #100km from dublin
-            "key": "AIzaSyBqVFiTmghTjDgdJQG11k3VXyLWdpZT4VA"
-        })
-    return r.json()
+
