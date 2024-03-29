@@ -302,19 +302,26 @@ async function generateIcon(station, type) {
       <p>last update at: ${timestampToDatetime(
         station[STATION_STRUCTURE.LAST_UPDATE] * 1000
       )}</p>
-      <button class="occupancy" onclick ="generateOccupancy(${
-        station[STATION_STRUCTURE.ID]
-      })">More details...</button>
+      <button class="select" onclick="${marker}">SELECT</button>
       </div>
       `;
+      //<button class="occupancy" onclick ="generateOccupancy(${
+      //   station[STATION_STRUCTURE.ID]
+      // })">More details...</button>
 
       infoWindow.setContent(infoWindowContent);
       infoWindow.open(marker.map, marker);
+      generateOccupancy(station[STATION_STRUCTURE.ID]);
     });
   }
 
   return marker;
 }
+
+// function select(marker) {
+//   console.log(marker.content);
+//   marker.content.element["scale"] = 1.5;
+// }
 
 //   async function showLeftBar() {
 //     mapClass = document.getElementById("map").classList;
@@ -497,28 +504,6 @@ dailyAvgChartBtn.addEventListener("click", () => {
   showChart("dailyAvg");
 });
 
-// async function getGeocode(){
-//   const startLoc = document.getElementById('startLoc');
-//   //startLoc_value = startLoc.value;
-//   const url = 'https://maps.googleapis.com/maps/api/geocode/json?address=UCD,&key=AIzaSyAX_iqnLB8j7JggiCSHd-pm6RDBBeSbRU0';
-
-//   const response = await fetch(url);
-//   if (!response.ok) {
-//     throw new Error("Failed to fetch data.");
-//   }
-
-//   const data = await response.json();
-//   console.log(data);
-//   if(data.status==='OK'){
-//     const results = data['results'][0];
-//     const loc = results['geometry']['location'];
-//     console.log(loc);
-//   }
-
-// }
-
-//await getGeocode();
-
 /**
  * Reset the location input fields
  */
@@ -567,35 +552,71 @@ window.goToLocation = async function (startLocString, endLocString) {
 
       clearMarkers();
 
-      const startMarker = await generateIcon(
-        {
-          [STATION_STRUCTURE.ID]: "startMarker",
-          [STATION_STRUCTURE.ADDRESS]: startLocation.name,
-          [STATION_STRUCTURE.LATITUDE]: startLocation.geometry.location.lat,
-          [STATION_STRUCTURE.LONGITUDE]: startLocation.geometry.location.lng,
+      // const startMarker = await generateIcon(
+      //   {
+      //     [STATION_STRUCTURE.ID]: "startMarker",
+      //     [STATION_STRUCTURE.ADDRESS]: startLocation.name,
+      //     [STATION_STRUCTURE.LATITUDE]: startLocation.geometry.location.lat,
+      //     [STATION_STRUCTURE.LONGITUDE]: startLocation.geometry.location.lng,
+      //   },
+      //   "start"
+      // );
+
+      const startContent = document.createElement("div");
+      startContent.className = "endContent";
+      startContent.textContent = "Start";
+
+      const startMarker = new AdvancedMarkerElement({
+        map,
+        position: {
+          lat: startLocation.geometry.location.lat,
+          lng: startLocation.geometry.location.lng,
         },
-        "start"
-      );
+        content: startContent,
+      });
+
       currentMarkers.push(startMarker);
 
-      const endMarker = await generateIcon(
-        {
-          [STATION_STRUCTURE.ID]: "endMarker",
-          [STATION_STRUCTURE.ADDRESS]: endLocation.name,
-          [STATION_STRUCTURE.LATITUDE]: endLocation.geometry.location.lat,
-          [STATION_STRUCTURE.LONGITUDE]: endLocation.geometry.location.lng,
+      // const endMarker = await generateIcon(
+      //   {
+      //     [STATION_STRUCTURE.ID]: "endMarker",
+      //     [STATION_STRUCTURE.ADDRESS]: endLocation.name,
+      //     [STATION_STRUCTURE.LATITUDE]: endLocation.geometry.location.lat,
+      //     [STATION_STRUCTURE.LONGITUDE]: endLocation.geometry.location.lng,
+      //   },
+      //   "end"
+      // );
+
+      const endContent = document.createElement("div");
+      endContent.className = "endContent";
+      endContent.textContent = "Finish";
+
+      const endMarker = new AdvancedMarkerElement({
+        map,
+        position: {
+          lat: endLocation.geometry.location.lat,
+          lng: endLocation.geometry.location.lng,
         },
-        "end"
-      );
+        content: endContent,
+      });
+
       currentMarkers.push(endMarker);
 
+      //set the map center to the middle point of the start and end
+      map.setCenter({
+        lat: (endMarker.position.lat + startMarker.position.lat) / 2,
+        lng: (endMarker.position.lng + startMarker.position.lng) / 2,
+      });
+
+      map.setZoom(13);
+
       locationsNearStartLocation.forEach(async (station) => {
-        const marker = await generateIcon(station.station, "nearToStart");
+        const marker = await generateIcon(station.station, "bike");
         currentMarkers.push(marker);
       });
 
       locationsNearEndLocation.forEach(async (station) => {
-        const marker = await generateIcon(station.station, "nearToEnd");
+        const marker = await generateIcon(station.station, "space");
         currentMarkers.push(marker);
       });
     } else {
