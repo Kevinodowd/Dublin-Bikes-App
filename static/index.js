@@ -1,6 +1,7 @@
 // Initialize and add the map
 let map;
 let currentMarkers = [];
+let directionsRenderer;
 
 const { Map, InfoWindow } = await google.maps.importLibrary("maps");
 const { AdvancedMarkerElement, PinElement, AdvancedMarkerClickEvent } =
@@ -77,9 +78,29 @@ async function initMap(stations_json) {
     });
 
     console.log("generate stations.");
-  } catch (error) {
+  ///////////////////
+  window.directionsService = new google.maps.DirectionsService();
+  ///////////////////////
+  } 
+  catch (error) {
     console.log(error);
   }
+}
+
+function calculateAndDisplayRoute(startStation, endStation) {
+  directionsService
+    .route({
+      origin: {lat: startStation.station[STATION_STRUCTURE.LATITUDE], lng: startStation.station[STATION_STRUCTURE.LONGITUDE]},
+      destination: {lat: endStation.station[STATION_STRUCTURE.LATITUDE], lng: endStation.station[STATION_STRUCTURE.LONGITUDE]},
+      travelMode: google.maps.TravelMode.BICYCLING,
+    })
+    .then((response) => {
+      directionsRenderer = new google.maps.DirectionsRenderer();
+      console.log(response.routes[0].legs[0].distance.text)
+      directionsRenderer.setMap(map);
+      directionsRenderer.setDirections(response);
+    })
+    .catch((e) => console.log("Directions could not be displayed."));
 }
 
 function timestampToDatetime(timestamp) {
@@ -515,6 +536,7 @@ window.resetLocationInputs = async function () {
     const marker = await generateIcon(station, "bike");
     currentMarkers.push(marker);
   });
+  directionsRenderer.setMap(null);
 };
 
 /**
@@ -619,6 +641,8 @@ window.goToLocation = async function (startLocString, endLocString) {
         const marker = await generateIcon(station.station, "space");
         currentMarkers.push(marker);
       });
+
+      calculateAndDisplayRoute(locationsNearStartLocation[0], locationsNearEndLocation[0]);
     } else {
       // No location results!
       alert("Enter values before submit");
