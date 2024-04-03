@@ -3,6 +3,7 @@ import pymysql
 import paramiko
 from sshtunnel import SSHTunnelForwarder
 import json
+from config import *
 
 def generate_mysqlEnginelocal(db=None):
     URI = "127.0.0.1"
@@ -32,7 +33,7 @@ def generate_mysqlEnginerds(db=None):
     return engine
 
 def connect_to_rds(query):
-    mypkey = paramiko.RSAKey.from_private_key_file('/Users/caitlin/Desktop/comp30830.pem')
+    mypkey = paramiko.RSAKey.from_private_key_file(private_key_path)
     # if you want to use ssh password use - ssh_password='your ssh password', bellow
 
     sql_hostname = 'database-1.cd28yc6ma768.eu-west-1.rds.amazonaws.com'
@@ -58,6 +59,4 @@ def connect_to_rds(query):
         data_json = cursor.fetchall()
         print('Successful')
         conn.close()
-        # query = '''SELECT * FROM availability;'''
-        # data = pd.read_sql_query(query, conn)
         return json.dumps(data_json)

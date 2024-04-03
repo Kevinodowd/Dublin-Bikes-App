@@ -7,9 +7,9 @@ const { Map, InfoWindow } = await google.maps.importLibrary("maps");
 const { AdvancedMarkerElement, PinElement, AdvancedMarkerClickEvent } =
   await google.maps.importLibrary("marker");
 
-const { Place } = await google.maps.importLibrary("places");
+let infoWindowArray = [];
 
-const infoWindow = new InfoWindow();
+const { Place } = await google.maps.importLibrary("places");
 
 const stations_json = await fetchStations();
 
@@ -57,7 +57,7 @@ spaceBtn.addEventListener("click", () => {
 async function initMap(stations_json) {
   try {
     // const stations_json =
-    console.log(stations_json);
+    //console.log(stations_json);
 
     //set the position to dublin
     const position = { lat: 53.3498, lng: -6.2603 };
@@ -143,7 +143,9 @@ async function getOverlayDate() {
   const currentTime = `${hour}:${minute}`;
   const overlayDate = `<p style="margin-block: 0em;">Today is ${currentDate}</p>
       <p style="margin-block: 0em;">Current time: ${currentTime}</p>`;
-  document.getElementById("overlayInfo").innerHTML += overlayDate;
+
+  const overlayInfo = document.getElementById('overlayInfo');
+  overlayInfo.innerHTML = overlayDate;
 }
 
 async function initWeather(weather) {
@@ -262,7 +264,7 @@ function IconColor(station, type = "bike") {
 }
 
 function changeIcon(stations_json) {
-  console.log("change icon function triggered.");
+  //console.log("change icon function triggered.");
   clearMarkers();
   //console.log(currentMarkers);
   let target;
@@ -286,7 +288,9 @@ function changeIcon(stations_json) {
   });
 }
 
+
 async function generateIcon(station, type) {
+
   const position = {
     lat: station[STATION_STRUCTURE.LATITUDE],
     lng: station[STATION_STRUCTURE.LONGITUDE],
@@ -305,6 +309,13 @@ async function generateIcon(station, type) {
   // Marker event listener for mouseover
   if (type != "start" && type != "end") {
     marker.addListener("gmp-click", () => {
+      //infoWindow.close()
+      if(infoWindowArray.length != 0){
+        infoWindowArray[0].close();
+        infoWindowArray = []
+      }
+      const infoWindow = new InfoWindow();
+      infoWindowArray.push(infoWindow);
       map.setZoom(17);
 
       map.setCenter(marker.position);
@@ -314,45 +325,69 @@ async function generateIcon(station, type) {
       } else {
         cardAccepted = "No";
       }
-      const infoWindowContent = `
-      <div class="infoWindowContainer" id=${station[STATION_STRUCTURE.ID]}>
-      <h3>No.${station[STATION_STRUCTURE.ID]} ${marker.title}</h3>
-      <p>credit card accepted: ${cardAccepted}</p>
-      <p>available bikes: ${station[STATION_STRUCTURE.BIKE_NUM]}</p>
-      <p>available spaces: ${station[STATION_STRUCTURE.BIKE_STANDS]}</p>
-      <p>last update at: ${timestampToDatetime(
-        station[STATION_STRUCTURE.LAST_UPDATE] * 1000
-      )}</p>
-      <button class="select" onclick="${marker}">SELECT</button>
-      </div>
-      `;
-      //<button class="occupancy" onclick ="generateOccupancy(${
-      //   station[STATION_STRUCTURE.ID]
-      // })">More details...</button>
 
+      const infoWindowContent = `
+  <div class="infoWindowContainer" id="station-${station[STATION_STRUCTURE.ID]}">
+  <h3>No.${station[STATION_STRUCTURE.ID]} ${marker.title}</h3>
+  <p>credit card accepted: ${cardAccepted}</p>
+  <p>available bikes: ${station[STATION_STRUCTURE.BIKE_NUM]}</p>
+  <p>available spaces: ${station[STATION_STRUCTURE.BIKE_STANDS]}</p>
+  <p>last update at: ${timestampToDatetime(station[STATION_STRUCTURE.LAST_UPDATE] * 1000)}</p>
+  <button id="selectBtnStart" data-role="start">SELECT AS START</button>
+  <button id="selectBtnDestination" data-role="destination">SELECT AS DESTINATION</button>
+</div>
+`;
+      
       infoWindow.setContent(infoWindowContent);
       infoWindow.open(marker.map, marker);
-      generateOccupancy(station[STATION_STRUCTURE.ID]);
+
+      
+      infoWindow.addListener('domready', () => {
+        // Ensure the content is rendered
+        const selectBtnStart = document.getElementById('selectBtnStart');
+        const selectBtnDestination = document.getElementById('selectBtnDestination');
+
+        const selectBtns = [selectBtnStart,selectBtnDestination];
+      
+        selectBtns.forEach(button => { 
+          console.log(station[STATION_STRUCTURE.ADDRESS],station[STATION_STRUCTURE.BIKE_NUM]);
+          if(station[STATION_STRUCTURE.BIKE_NUM] === 0 && button.getAttribute('data-role')==='start'){button.disabled=true}
+          else if(station[STATION_STRUCTURE.BIKE_STANDS] === 0 && button.getAttribute('data-role')==='destination'){button.disabled=true}
+          button.addEventListener('click', function() {
+            const role = this.getAttribute('data-role');
+            selectStation(station, role,marker,type);
+          });
+        
+        });
+
+        //selectBtns = [];
+      });
+
+      generateOccupancy(station[STATION_STRUCTURE.ID],station[STATION_STRUCTURE.ADDRESS]);
     });
+    
   }
 
   return marker;
 }
 
-// function select(marker) {
-//   console.log(marker.content);
-//   marker.content.element["scale"] = 1.5;
-// }
 
-//   async function showLeftBar() {
-//     mapClass = document.getElementById("map").classList;
-//     if ("showLeft" in mapClass) {
-//     }
-//   }
-// }
+window.selectStation = (station,role,marker,type)=>{
+ const stationAddress = station[STATION_STRUCTURE.ADDRESS];
+ const pinBackground = IconColor(station,type);
+pinBackground.scale = 1.5;
+marker.content = pinBackground.element;
+ if(role === 'start'){
+    startLocationInput.value = stationAddress;
 
-window.generateOccupancy = async (station_id) => {
+ }else{
+    endLocationInput.value = stationAddress;
+ }
+}
+
+window.generateOccupancy = async (station_id,station_address) => {
   try {
+    document.getElementById('occupancyTip').innerText = `Loading the occupancy charts for station No.${station_id}: ${station_address}...`;
     const response = await fetch(`/stations/${station_id}/availability`);
     if (!response.ok) {
       throw new Error("Failed to fetch data.");
@@ -361,6 +396,16 @@ window.generateOccupancy = async (station_id) => {
 
     const todayAvailablity = await getTodayAvailabiliy(availability);
     const dailyAvg = await calculateDailyBikeNumbers(availability);
+    const occupancyBtns = document.getElementsByClassName('occupancyBtn');
+    
+    for (let i = 0; i < occupancyBtns.length; i++) {
+      // Change the display style of each element
+      //console.log(occupancyBtns[i]);
+      occupancyBtns[i].style.display = 'inline-block'; // This will hide the elements
+  }
+
+    const occupancyTip = document.getElementById('occupancyTip');
+    occupancyTip.innerText = `You've selected station No.${station_id}: ${station_address}.`
 
     generateTodayBarChart(todayAvailablity, "todayChart");
     generateAvgBarChart(dailyAvg, "dailyAvgChart");
@@ -429,7 +474,7 @@ function generateAvgBarChart(dailyAvgData, barchartSection) {
   };
 
   Object.keys(dailyAvgData).forEach((date) => {
-    console.log(date);
+    //console.log(date);
     trace1["x"].push(date);
     trace1["y"].push(dailyAvgData[date]["avgBike"]);
     trace2["y"].push(dailyAvgData[date]["avgSpace"]);
@@ -469,7 +514,7 @@ async function getTodayAvailabiliy(data) {
     }
   }
 
-  console.log(td);
+  //console.log(td);
   return td;
 }
 
@@ -725,27 +770,6 @@ async function fetchLocation(loc) {
   }
 }
 
-// async function getGeocode(){
-//   const startLoc = document.getElementById('startLoc');
-//   //startLoc_value = startLoc.value;
-//   const url = 'https://maps.googleapis.com/maps/api/geocode/json?address=UCD,&key=AIzaSyAX_iqnLB8j7JggiCSHd-pm6RDBBeSbRU0';
-
-//   const response = await fetch(url);
-//   if (!response.ok) {
-//     throw new Error("Failed to fetch data.");
-//   }
-
-//   const data = await response.json();
-//   console.log(data);
-//   if(data.status==='OK'){
-//     const results = data['results'][0];
-//     const loc = results['geometry']['location'];
-//     console.log(loc);
-//   }
-
-// }
-
-//await getGeocode();
 
 await getOverlayDate();
 await initWeather();

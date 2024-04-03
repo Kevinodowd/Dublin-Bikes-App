@@ -105,7 +105,9 @@ body {
 }
 
 .occupancyBtn {
-  display: inline-block;
+  display: none;
+  background-color: #2d2c2c;
+  color: white;
 }
 
 .barchart {
