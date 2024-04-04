@@ -103,6 +103,25 @@ function calculateAndDisplayRoute(startStation, endStation) {
     .catch((e) => console.log("Directions could not be displayed."));
 }
 
+async function routeForStationsIcon() {
+  startStation = document.querySelector('.start');
+  endStation = document.querySelector('.destination');
+  console.log(startStation,endLocation);
+  // directionsService
+  //   .route({
+  //     origin: {lat: startStation.station[STATION_STRUCTURE.LATITUDE], lng: startStation.station[STATION_STRUCTURE.LONGITUDE]},
+  //     destination: {lat: endStation.station[STATION_STRUCTURE.LATITUDE], lng: endStation.station[STATION_STRUCTURE.LONGITUDE]},
+  //     travelMode: google.maps.TravelMode.BICYCLING,
+  //   })
+  //   .then((response) => {
+  //     directionsRenderer = new google.maps.DirectionsRenderer();
+  //     console.log(response.routes[0].legs[0].distance.text)
+  //     directionsRenderer.setMap(map);
+  //     directionsRenderer.setDirections(response);
+  //   })
+  //   .catch((e) => console.log("Directions could not be displayed."));
+}
+
 function timestampToDatetime(timestamp) {
   const date = new Date(timestamp);
   const year = date.getFullYear();
@@ -356,12 +375,21 @@ async function generateIcon(station, type) {
           button.addEventListener('click', function() {
             const role = this.getAttribute('data-role');
             selectStation(station, role,marker,type);
+            clearStartOrEnd(role);
+            button.classList.add(role);
           });
         
         });
 
         //selectBtns = [];
       });
+
+      function clearStartOrEnd(status){
+       let btns = document.querySelectorAll(`.{status}`);
+       btns.forEach(button=>{
+        button.classList.remove(status);
+       })
+      }
 
       generateOccupancy(station[STATION_STRUCTURE.ID],station[STATION_STRUCTURE.ADDRESS]);
     });
@@ -384,6 +412,8 @@ marker.content = pinBackground.element;
     endLocationInput.value = stationAddress;
  }
 }
+
+window.connect
 
 window.generateOccupancy = async (station_id,station_address) => {
   try {
@@ -644,16 +674,6 @@ window.goToLocation = async function (startLocString, endLocString) {
 
       currentMarkers.push(startMarker);
 
-      // const endMarker = await generateIcon(
-      //   {
-      //     [STATION_STRUCTURE.ID]: "endMarker",
-      //     [STATION_STRUCTURE.ADDRESS]: endLocation.name,
-      //     [STATION_STRUCTURE.LATITUDE]: endLocation.geometry.location.lat,
-      //     [STATION_STRUCTURE.LONGITUDE]: endLocation.geometry.location.lng,
-      //   },
-      //   "end"
-      // );
-
       const endContent = document.createElement("div");
       endContent.className = "endContent";
       endContent.textContent = "Finish";
@@ -696,6 +716,8 @@ window.goToLocation = async function (startLocString, endLocString) {
     alert("Enter values before submit");
   }
 };
+
+
 
 /**
  * Convert from degrees to radians
