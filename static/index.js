@@ -2,6 +2,7 @@
 let map;
 let currentMarkers = [];
 let directionsRenderer;
+let startMarker, endMarker;
 
 const { Map, InfoWindow } = await google.maps.importLibrary("maps");
 const { AdvancedMarkerElement, PinElement, AdvancedMarkerClickEvent } =
@@ -63,9 +64,8 @@ async function initMap(stations_json) {
     const position = { lat: 53.3498, lng: -6.2603 };
 
     map = new Map(document.getElementById("map"), {
-      zoom: 13.5,
+      zoom: 13.3,
       center: position,
-      mapId: "Dublin",
       mapId: "ca9c8053cd850a9c",
     });
 
@@ -95,10 +95,14 @@ function calculateAndDisplayRoute(startStation, endStation) {
       travelMode: google.maps.TravelMode.BICYCLING,
     })
     .then((response) => {
-      directionsRenderer = new google.maps.DirectionsRenderer();
+      directionsRenderer = new google.maps.DirectionsRenderer({
+        suppressMarkers: true,
+        preserveViewport: true
+      });
       console.log(response.routes[0].legs[0].distance.text)
       directionsRenderer.setMap(map);
       directionsRenderer.setDirections(response);
+      setBoundsToStartEnd();
     })
     .catch((e) => console.log("Directions could not be displayed."));
 }
@@ -307,9 +311,7 @@ function changeIcon(stations_json) {
   });
 }
 
-
 async function generateIcon(station, type) {
-
   const position = {
     lat: station[STATION_STRUCTURE.LATITUDE],
     lng: station[STATION_STRUCTURE.LONGITUDE],
@@ -648,6 +650,10 @@ window.goToLocation = async function (startLocString, endLocString) {
       ).slice(0, 3);
 
       clearMarkers();
+      if (!!directionsRenderer) {
+        directionsRenderer.setMap(null);
+      }
+      
 
       // const startMarker = await generateIcon(
       //   {
@@ -690,12 +696,12 @@ window.goToLocation = async function (startLocString, endLocString) {
       currentMarkers.push(endMarker);
 
       //set the map center to the middle point of the start and end
-      map.setCenter({
-        lat: (endMarker.position.lat + startMarker.position.lat) / 2,
-        lng: (endMarker.position.lng + startMarker.position.lng) / 2,
-      });
+      // map.setCenter({
+      //   lat: (endMarker.position.lat + startMarker.position.lat) / 2,
+      //   lng: (endMarker.position.lng + startMarker.position.lng) / 2,
+      // });
 
-      map.setZoom(13);
+      // map.setZoom(13);
 
       locationsNearStartLocation.forEach(async (station) => {
         const marker = await generateIcon(station.station, "bike");
@@ -717,7 +723,18 @@ window.goToLocation = async function (startLocString, endLocString) {
   }
 };
 
+function setBoundsToStartEnd() {
+  const bounds = new google.maps.LatLngBounds();
+  const startPosition = startMarker.position;
+  const endPosition = endMarker.position;
 
+  bounds.extend( startPosition );
+  bounds.extend( endPosition );
+  currentMarkers.forEach(function(marker) {
+    bounds.extend(marker.position);
+  });
+  map.fitBounds( bounds );
+}
 
 /**
  * Convert from degrees to radians
