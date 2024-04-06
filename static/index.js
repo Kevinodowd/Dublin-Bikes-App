@@ -64,11 +64,10 @@ async function initMap(stations_json) {
     const position = { lat: 53.3498, lng: -6.2603 };
 
     map = new Map(document.getElementById("map"), {
-      zoom: 13.3,
+      zoom: 13.2,
       center: position,
       mapId: "ca9c8053cd850a9c",
     });
-
     console.log("generate a map.");
 
     // Add markers to current markers list. Async in order to add the marker, not the promise for each
@@ -97,7 +96,8 @@ function calculateAndDisplayRoute(startStation, endStation) {
     .then((response) => {
       directionsRenderer = new google.maps.DirectionsRenderer({
         suppressMarkers: true,
-        preserveViewport: true
+        preserveViewport: true,
+        polylineOptions: {strokeColor: 'red'},
       });
       console.log(response.routes[0].legs[0].distance.text)
       directionsRenderer.setMap(map);
@@ -164,8 +164,7 @@ async function getOverlayDate() {
 
   const currentDate = `${day} ${month} ${year}`;
   const currentTime = `${hour}:${minute}`;
-  const overlayDate = `<p style="margin-block: 0em;">Today is ${currentDate}</p>
-      <p style="margin-block: 0em;">Current time: ${currentTime}</p>`;
+  const overlayDate = `<p style="margin-block: 0em;">Today is ${currentDate}, Current time: ${currentTime} &nbsp;</p>`;
 
   const overlayInfo = document.getElementById('overlayInfo');
   overlayInfo.innerHTML = overlayDate;
@@ -476,8 +475,16 @@ function generateTodayBarChart(data_input, barchartSection) {
 
     const layout = {
       title: "today's occupancy",
-      font: { size: 15 },
+      font: { size: 12.5 },
       barmode: "stack",
+      // attempts below to change xticks/xtitle rotation etc.. further check
+      // autosize: true,
+      // width: 300,
+      // height: 220,
+      // xaxis: {title: None},
+      // xanchor: center,
+      // xref: 'container', 
+      // xaxis: {automargin: true},
     };
 
     Plotly.react(barchartSection, data, layout);
@@ -669,7 +676,7 @@ window.goToLocation = async function (startLocString, endLocString) {
       startContent.className = "endContent";
       startContent.textContent = "Start";
 
-      const startMarker = new AdvancedMarkerElement({
+      startMarker = new AdvancedMarkerElement({
         map,
         position: {
           lat: startLocation.geometry.location.lat,
@@ -684,7 +691,7 @@ window.goToLocation = async function (startLocString, endLocString) {
       endContent.className = "endContent";
       endContent.textContent = "Finish";
 
-      const endMarker = new AdvancedMarkerElement({
+      endMarker = new AdvancedMarkerElement({
         map,
         position: {
           lat: endLocation.geometry.location.lat,
