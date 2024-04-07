@@ -55,7 +55,7 @@ spaceBtn.addEventListener("click", () => {
   bikeBtn.classList.remove("disabled");
 });
 
-async function initMap(stations_json) {
+function initMap(stations_json) {
   try {
     // const stations_json =
     //console.log(stations_json);
