@@ -77,11 +77,10 @@ async function initMap(stations_json) {
     });
 
     console.log("generate stations.");
-  ///////////////////
-  window.directionsService = new google.maps.DirectionsService();
-  ///////////////////////
-  } 
-  catch (error) {
+    ///////////////////
+    window.directionsService = new google.maps.DirectionsService();
+    ///////////////////////
+  } catch (error) {
     console.log(error);
   }
 }
@@ -89,17 +88,19 @@ async function initMap(stations_json) {
 function calculateAndDisplayRoute(startStation, endStation) {
   directionsService
     .route({
-      origin: {lat: startStation.station[STATION_STRUCTURE.LATITUDE], lng: startStation.station[STATION_STRUCTURE.LONGITUDE]},
-      destination: {lat: endStation.station[STATION_STRUCTURE.LATITUDE], lng: endStation.station[STATION_STRUCTURE.LONGITUDE]},
+      origin: {
+        lat: startStation.station[STATION_STRUCTURE.LATITUDE],
+        lng: startStation.station[STATION_STRUCTURE.LONGITUDE],
+      },
+      destination: {
+        lat: endStation.station[STATION_STRUCTURE.LATITUDE],
+        lng: endStation.station[STATION_STRUCTURE.LONGITUDE],
+      },
       travelMode: google.maps.TravelMode.BICYCLING,
     })
     .then((response) => {
-      directionsRenderer = new google.maps.DirectionsRenderer({
-        suppressMarkers: true,
-        preserveViewport: true,
-        polylineOptions: {strokeColor: 'red'},
-      });
-      console.log(response.routes[0].legs[0].distance.text)
+      directionsRenderer = new google.maps.DirectionsRenderer();
+      console.log(response.routes[0].legs[0].distance.text);
       directionsRenderer.setMap(map);
       directionsRenderer.setDirections(response);
       setBoundsToStartEnd();
@@ -108,9 +109,9 @@ function calculateAndDisplayRoute(startStation, endStation) {
 }
 
 async function routeForStationsIcon() {
-  startStation = document.querySelector('.start');
-  endStation = document.querySelector('.destination');
-  console.log(startStation,endLocation);
+  startStation = document.querySelector(".start");
+  endStation = document.querySelector(".destination");
+  console.log(startStation, endLocation);
   // directionsService
   //   .route({
   //     origin: {lat: startStation.station[STATION_STRUCTURE.LATITUDE], lng: startStation.station[STATION_STRUCTURE.LONGITUDE]},
@@ -166,7 +167,7 @@ async function getOverlayDate() {
   const currentTime = `${hour}:${minute}`;
   const overlayDate = `<p style="margin-block: 0em;">Today is ${currentDate}, Current time: ${currentTime} &nbsp;</p>`;
 
-  const overlayInfo = document.getElementById('overlayInfo');
+  const overlayInfo = document.getElementById("overlayInfo");
   overlayInfo.innerHTML = overlayDate;
 }
 
@@ -330,9 +331,9 @@ async function generateIcon(station, type) {
   if (type != "start" && type != "end") {
     marker.addListener("gmp-click", () => {
       //infoWindow.close()
-      if(infoWindowArray.length != 0){
+      if (infoWindowArray.length != 0) {
         infoWindowArray[0].close();
-        infoWindowArray = []
+        infoWindowArray = [];
       }
       const infoWindow = new InfoWindow();
       infoWindowArray.push(infoWindow);
@@ -347,78 +348,96 @@ async function generateIcon(station, type) {
       }
 
       const infoWindowContent = `
-  <div class="infoWindowContainer" id="station-${station[STATION_STRUCTURE.ID]}">
+  <div class="infoWindowContainer" id="station-${
+    station[STATION_STRUCTURE.ID]
+  }">
   <h3>No.${station[STATION_STRUCTURE.ID]} ${marker.title}</h3>
   <p>credit card accepted: ${cardAccepted}</p>
   <p>available bikes: ${station[STATION_STRUCTURE.BIKE_NUM]}</p>
   <p>available spaces: ${station[STATION_STRUCTURE.BIKE_STANDS]}</p>
-  <p>last update at: ${timestampToDatetime(station[STATION_STRUCTURE.LAST_UPDATE] * 1000)}</p>
+  <p>last update at: ${timestampToDatetime(
+    station[STATION_STRUCTURE.LAST_UPDATE] * 1000
+  )}</p>
   <button id="selectBtnStart" data-role="start">SELECT AS START</button>
   <button id="selectBtnDestination" data-role="destination">SELECT AS DESTINATION</button>
 </div>
 `;
-      
+
       infoWindow.setContent(infoWindowContent);
       infoWindow.open(marker.map, marker);
 
-      
-      infoWindow.addListener('domready', () => {
+      infoWindow.addListener("domready", () => {
         // Ensure the content is rendered
-        const selectBtnStart = document.getElementById('selectBtnStart');
-        const selectBtnDestination = document.getElementById('selectBtnDestination');
+        const selectBtnStart = document.getElementById("selectBtnStart");
+        const selectBtnDestination = document.getElementById(
+          "selectBtnDestination"
+        );
 
-        const selectBtns = [selectBtnStart,selectBtnDestination];
-      
-        selectBtns.forEach(button => { 
-          console.log(station[STATION_STRUCTURE.ADDRESS],station[STATION_STRUCTURE.BIKE_NUM]);
-          if(station[STATION_STRUCTURE.BIKE_NUM] === 0 && button.getAttribute('data-role')==='start'){button.disabled=true}
-          else if(station[STATION_STRUCTURE.BIKE_STANDS] === 0 && button.getAttribute('data-role')==='destination'){button.disabled=true}
-          button.addEventListener('click', function() {
-            const role = this.getAttribute('data-role');
-            selectStation(station, role,marker,type);
+        const selectBtns = [selectBtnStart, selectBtnDestination];
+
+        selectBtns.forEach((button) => {
+          console.log(
+            station[STATION_STRUCTURE.ADDRESS],
+            station[STATION_STRUCTURE.BIKE_NUM]
+          );
+          if (
+            station[STATION_STRUCTURE.BIKE_NUM] === 0 &&
+            button.getAttribute("data-role") === "start"
+          ) {
+            button.disabled = true;
+          } else if (
+            station[STATION_STRUCTURE.BIKE_STANDS] === 0 &&
+            button.getAttribute("data-role") === "destination"
+          ) {
+            button.disabled = true;
+          }
+          button.addEventListener("click", function () {
+            const role = this.getAttribute("data-role");
+            selectStation(station, role, marker, type);
             clearStartOrEnd(role);
             button.classList.add(role);
           });
-        
         });
 
         //selectBtns = [];
       });
 
-      function clearStartOrEnd(status){
-       let btns = document.querySelectorAll(`.{status}`);
-       btns.forEach(button=>{
-        button.classList.remove(status);
-       })
+      function clearStartOrEnd(status) {
+        let btns = document.querySelectorAll(`.{status}`);
+        btns.forEach((button) => {
+          button.classList.remove(status);
+        });
       }
 
-      generateOccupancy(station[STATION_STRUCTURE.ID],station[STATION_STRUCTURE.ADDRESS]);
+      generateOccupancy(
+        station[STATION_STRUCTURE.ID],
+        station[STATION_STRUCTURE.ADDRESS]
+      );
     });
-    
   }
 
   return marker;
 }
 
-
-window.selectStation = (station,role,marker,type)=>{
- const stationAddress = station[STATION_STRUCTURE.ADDRESS];
- const pinBackground = IconColor(station,type);
-pinBackground.scale = 1.5;
-marker.content = pinBackground.element;
- if(role === 'start'){
+window.selectStation = (station, role, marker, type) => {
+  const stationAddress = station[STATION_STRUCTURE.ADDRESS];
+  const pinBackground = IconColor(station, type);
+  pinBackground.scale = 1.5;
+  marker.content = pinBackground.element;
+  if (role === "start") {
     startLocationInput.value = stationAddress;
-
- }else{
+  } else {
     endLocationInput.value = stationAddress;
- }
-}
+  }
+};
 
-window.connect
+window.connect;
 
-window.generateOccupancy = async (station_id,station_address) => {
+window.generateOccupancy = async (station_id, station_address) => {
   try {
-    document.getElementById('occupancyTip').innerText = `Loading the occupancy charts for station No.${station_id}: ${station_address}...`;
+    document.getElementById(
+      "occupancyTip"
+    ).innerText = `Loading the occupancy charts for station No.${station_id}: ${station_address}...`;
     const response = await fetch(`/stations/${station_id}/availability`);
     if (!response.ok) {
       throw new Error("Failed to fetch data.");
@@ -427,16 +446,16 @@ window.generateOccupancy = async (station_id,station_address) => {
 
     const todayAvailablity = await getTodayAvailabiliy(availability);
     const dailyAvg = await calculateDailyBikeNumbers(availability);
-    const occupancyBtns = document.getElementsByClassName('occupancyBtn');
-    
+    const occupancyBtns = document.getElementsByClassName("occupancyBtn");
+
     for (let i = 0; i < occupancyBtns.length; i++) {
       // Change the display style of each element
       //console.log(occupancyBtns[i]);
-      occupancyBtns[i].style.display = 'inline-block'; // This will hide the elements
-  }
+      occupancyBtns[i].style.display = "inline-block"; // This will hide the elements
+    }
 
-    const occupancyTip = document.getElementById('occupancyTip');
-    occupancyTip.innerText = `You've selected station No.${station_id}: ${station_address}.`
+    const occupancyTip = document.getElementById("occupancyTip");
+    occupancyTip.innerText = `You've selected station No.${station_id}: ${station_address}.`;
 
     generateTodayBarChart(todayAvailablity, "todayChart");
     generateAvgBarChart(dailyAvg, "dailyAvgChart");
@@ -483,7 +502,7 @@ function generateTodayBarChart(data_input, barchartSection) {
       // height: 220,
       // xaxis: {title: None},
       // xanchor: center,
-      // xref: 'container', 
+      // xref: 'container',
       // xaxis: {automargin: true},
     };
 
@@ -660,7 +679,6 @@ window.goToLocation = async function (startLocString, endLocString) {
       if (!!directionsRenderer) {
         directionsRenderer.setMap(null);
       }
-      
 
       // const startMarker = await generateIcon(
       //   {
@@ -708,7 +726,7 @@ window.goToLocation = async function (startLocString, endLocString) {
       //   lng: (endMarker.position.lng + startMarker.position.lng) / 2,
       // });
 
-      // map.setZoom(13);
+      //map.setZoom(13);
 
       locationsNearStartLocation.forEach(async (station) => {
         const marker = await generateIcon(station.station, "bike");
@@ -720,7 +738,10 @@ window.goToLocation = async function (startLocString, endLocString) {
         currentMarkers.push(marker);
       });
 
-      calculateAndDisplayRoute(locationsNearStartLocation[0], locationsNearEndLocation[0]);
+      calculateAndDisplayRoute(
+        locationsNearStartLocation[0],
+        locationsNearEndLocation[0]
+      );
     } else {
       // No location results!
       alert("Enter values before submit");
@@ -735,12 +756,12 @@ function setBoundsToStartEnd() {
   const startPosition = startMarker.position;
   const endPosition = endMarker.position;
 
-  bounds.extend( startPosition );
-  bounds.extend( endPosition );
-  currentMarkers.forEach(function(marker) {
+  bounds.extend(startPosition);
+  bounds.extend(endPosition);
+  currentMarkers.forEach(function (marker) {
     bounds.extend(marker.position);
   });
-  map.fitBounds( bounds );
+  map.fitBounds(bounds);
 }
 
 /**
@@ -815,7 +836,6 @@ async function fetchLocation(loc) {
     throw error;
   }
 }
-
 
 await getOverlayDate();
 await initWeather();
