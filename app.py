@@ -88,6 +88,10 @@ def searchLocation(loc):
         })
     return r.json()
 
+@app.route('/modeltraining/<int:station_id>')
+def model_traning(station_id):
+    pass
+
 if __name__ == '__main__':
     app.run(debug=True)
 

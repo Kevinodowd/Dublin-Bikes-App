@@ -99,7 +99,10 @@ function calculateAndDisplayRoute(startStation, endStation) {
       travelMode: google.maps.TravelMode.BICYCLING,
     })
     .then((response) => {
-      directionsRenderer = new google.maps.DirectionsRenderer();
+      directionsRenderer = new google.maps.DirectionsRenderer({
+        suppressMarkers: true,
+        preserveViewport: true,
+      });
       console.log(response.routes[0].legs[0].distance.text);
       directionsRenderer.setMap(map);
       directionsRenderer.setDirections(response);
@@ -108,24 +111,24 @@ function calculateAndDisplayRoute(startStation, endStation) {
     .catch((e) => console.log("Directions could not be displayed."));
 }
 
-async function routeForStationsIcon() {
-  startStation = document.querySelector(".start");
-  endStation = document.querySelector(".destination");
-  console.log(startStation, endLocation);
-  // directionsService
-  //   .route({
-  //     origin: {lat: startStation.station[STATION_STRUCTURE.LATITUDE], lng: startStation.station[STATION_STRUCTURE.LONGITUDE]},
-  //     destination: {lat: endStation.station[STATION_STRUCTURE.LATITUDE], lng: endStation.station[STATION_STRUCTURE.LONGITUDE]},
-  //     travelMode: google.maps.TravelMode.BICYCLING,
-  //   })
-  //   .then((response) => {
-  //     directionsRenderer = new google.maps.DirectionsRenderer();
-  //     console.log(response.routes[0].legs[0].distance.text)
-  //     directionsRenderer.setMap(map);
-  //     directionsRenderer.setDirections(response);
-  //   })
-  //   .catch((e) => console.log("Directions could not be displayed."));
-}
+// async function routeForStationsIcon() {
+//   startStation = document.querySelector(".start");
+//   endStation = document.querySelector(".destination");
+//   console.log(startStation, endLocation);
+//   // directionsService
+//   //   .route({
+//   //     origin: {lat: startStation.station[STATION_STRUCTURE.LATITUDE], lng: startStation.station[STATION_STRUCTURE.LONGITUDE]},
+//   //     destination: {lat: endStation.station[STATION_STRUCTURE.LATITUDE], lng: endStation.station[STATION_STRUCTURE.LONGITUDE]},
+//   //     travelMode: google.maps.TravelMode.BICYCLING,
+//   //   })
+//   //   .then((response) => {
+//   //     directionsRenderer = new google.maps.DirectionsRenderer();
+//   //     console.log(response.routes[0].legs[0].distance.text)
+//   //     directionsRenderer.setMap(map);
+//   //     directionsRenderer.setDirections(response);
+//   //   })
+//   //   .catch((e) => console.log("Directions could not be displayed."));
+// }
 
 function timestampToDatetime(timestamp) {
   const date = new Date(timestamp);
@@ -194,7 +197,7 @@ async function initWeather(weather) {
     );
     iconImg.setAttribute("style", "height: 2em");
     const temperature = Math.floor(weather_info[4] - 273.15);
-    const overlayDubWeather = `<p style="display: inline; margin-block: 0em;">Today's Dublin Weather: ${temperature} °C with ${weatherDescription}</p>`;
+    const overlayDubWeather = `<p style="display: inline; margin-block: 0em;">Today's Dublin Weather: ${temperature} °C with ${weatherDescription} </p>`;
     document.getElementById("overlayInfo").innerHTML += overlayDubWeather;
     document.getElementById("overlayInfo").appendChild(iconImg);
   }
@@ -396,6 +399,7 @@ async function generateIcon(station, type) {
             selectStation(station, role, marker, type);
             clearStartOrEnd(role);
             button.classList.add(role);
+            console.log(button.classList);
           });
         });
 
@@ -403,7 +407,8 @@ async function generateIcon(station, type) {
       });
 
       function clearStartOrEnd(status) {
-        let btns = document.querySelectorAll(`.{status}`);
+        let btns = document.querySelectorAll(`.${status}`);
+        console.log(btns, `.${status}`);
         btns.forEach((button) => {
           button.classList.remove(status);
         });
@@ -426,8 +431,10 @@ window.selectStation = (station, role, marker, type) => {
   marker.content = pinBackground.element;
   if (role === "start") {
     startLocationInput.value = stationAddress;
+    document.getElementById("selectBtnDestination").disabled = true;
   } else {
     endLocationInput.value = stationAddress;
+    document.getElementById("selectBtnStart").disabled = true;
   }
 };
 
@@ -455,7 +462,7 @@ window.generateOccupancy = async (station_id, station_address) => {
     }
 
     const occupancyTip = document.getElementById("occupancyTip");
-    occupancyTip.innerText = `You've selected station No.${station_id}: ${station_address}.`;
+    occupancyTip.innerText = `You are checking the occupancy of station No.${station_id}: ${station_address}.`;
 
     generateTodayBarChart(todayAvailablity, "todayChart");
     generateAvgBarChart(dailyAvg, "dailyAvgChart");
@@ -497,13 +504,13 @@ function generateTodayBarChart(data_input, barchartSection) {
       font: { size: 12.5 },
       barmode: "stack",
       // attempts below to change xticks/xtitle rotation etc.. further check
-      // autosize: true,
+      autosize: true,
       // width: 300,
       // height: 220,
       // xaxis: {title: None},
-      // xanchor: center,
-      // xref: 'container',
-      // xaxis: {automargin: true},
+      xanchor: "free",
+      xref: "container",
+      xaxis: { automargin: true },
     };
 
     Plotly.react(barchartSection, data, layout);
@@ -648,6 +655,7 @@ window.resetLocationInputs = async function () {
  * @param {string} startLocString start location search string
  * @param {string} endLocString end location search string
  */
+
 window.goToLocation = async function (startLocString, endLocString) {
   if (startLocString?.length > 0 && endLocString?.length > 0) {
     const possibleStartLocations = await fetchLocation(startLocString);
@@ -669,11 +677,48 @@ window.goToLocation = async function (startLocString, endLocString) {
       const locationsNearStartLocation = getDistancesToLocation(
         startLocation.geometry.location.lat,
         startLocation.geometry.location.lng
-      ).slice(0, 3);
+      ).slice(0, 1);
+
+      const locationsNearStartLocationAll = getDistancesToLocation(
+        startLocation.geometry.location.lat,
+        startLocation.geometry.location.lng
+      );
+
+      console.log(
+        "All of the stations selected for the start location: ",
+        locationsNearStartLocationAll
+      );
+      console.log(
+        "the stations selected for the start location: ",
+        locationsNearStartLocation
+      );
+
       const locationsNearEndLocation = getDistancesToLocation(
         endLocation.geometry.location.lat,
         endLocation.geometry.location.lng
-      ).slice(0, 3);
+      ).slice(0, 1);
+
+      console.log(
+        "the stations selected for the start location: ",
+        locationsNearEndLocation
+      );
+      console.log(
+        "the stations selected for the end location: ",
+        locationsNearEndLocation
+      );
+
+      document.getElementById(
+        "selectedStationInfo"
+      ).innerHTML = `<p>We suggest you ride from <span style="font-weight: bold;">No.${
+        locationsNearStartLocation[0]["station"][STATION_STRUCTURE.ID] +
+        " " +
+        locationsNearStartLocation[0]["station"][STATION_STRUCTURE.ADDRESS]
+      } </span>
+      to <span style="font-weight: bold;">No.${
+        locationsNearEndLocation[0]["station"][STATION_STRUCTURE.ID] +
+        " " +
+        locationsNearEndLocation[0]["station"][STATION_STRUCTURE.ADDRESS]
+      }.</span></p>`;
 
       clearMarkers();
       if (!!directionsRenderer) {
@@ -690,35 +735,45 @@ window.goToLocation = async function (startLocString, endLocString) {
       //   "start"
       // );
 
-      const startContent = document.createElement("div");
-      startContent.className = "endContent";
-      startContent.textContent = "Start";
+      // const startContent = document.createElement("div");
+      // startContent.className = "endContent";
+      // startContent.textContent = "Start";
 
-      startMarker = new AdvancedMarkerElement({
-        map,
-        position: {
-          lat: startLocation.geometry.location.lat,
-          lng: startLocation.geometry.location.lng,
-        },
-        content: startContent,
-      });
+      // startMarker = new AdvancedMarkerElement({
+      //   map,
+      //   position: {
+      //     lat: startLocation.geometry.location.lat,
+      //     lng: startLocation.geometry.location.lng,
+      //   },
+      //   content: startContent,
+      // });
 
-      currentMarkers.push(startMarker);
+      // currentMarkers.push(startMarker);
 
-      const endContent = document.createElement("div");
-      endContent.className = "endContent";
-      endContent.textContent = "Finish";
+      // const endMarker = await generateIcon(
+      //   {
+      //     [STATION_STRUCTURE.ID]: "endMarker",
+      //     [STATION_STRUCTURE.ADDRESS]: endLocation.name,
+      //     [STATION_STRUCTURE.LATITUDE]: endLocation.geometry.location.lat,
+      //     [STATION_STRUCTURE.LONGITUDE]: endLocation.geometry.location.lng,
+      //   },
+      //   "end"
+      // );
 
-      endMarker = new AdvancedMarkerElement({
-        map,
-        position: {
-          lat: endLocation.geometry.location.lat,
-          lng: endLocation.geometry.location.lng,
-        },
-        content: endContent,
-      });
+      // const endContent = document.createElement("div");
+      // endContent.className = "endContent";
+      // endContent.textContent = "Finish";
 
-      currentMarkers.push(endMarker);
+      // endMarker = new AdvancedMarkerElement({
+      //   map,
+      //   position: {
+      //     lat: endLocation.geometry.location.lat,
+      //     lng: endLocation.geometry.location.lng,
+      //   },
+      //   content: endContent,
+      // });
+
+      // currentMarkers.push(endMarker);
 
       //set the map center to the middle point of the start and end
       // map.setCenter({
@@ -742,6 +797,17 @@ window.goToLocation = async function (startLocString, endLocString) {
         locationsNearStartLocation[0],
         locationsNearEndLocation[0]
       );
+
+      // map.setCenter({
+      //   lat:
+      //     (locationsNearStartLocation[0][STATION_STRUCTURE.LATITUDE] +
+      //       locationsNearEndLocation[0][STATION_STRUCTURE.LATITUDE]) /
+      //     2,
+      //   lng:
+      //     (locationsNearStartLocation[0][STATION_STRUCTURE.LONGITUDE] +
+      //       locationsNearEndLocation[0][STATION_STRUCTURE.LONGITUDE]) /
+      //     2,
+      // });
     } else {
       // No location results!
       alert("Enter values before submit");
@@ -809,6 +875,12 @@ function getDistance(lat1, lon1, lat2, lon2) {
  */
 function getDistancesToLocation(lat, long) {
   const distances = stations_json.map((station) => {
+    //if bike_num or bike stand === 0, return a very large number to make sure the station is not selected
+    if (station[STATION_STRUCTURE.BIKE_NUM !== 0]) {
+      console.log(
+        "Considering the bike num or bike stand number when getting the distances to location"
+      );
+    }
     return {
       station: station,
       // Get distance from given location to station location

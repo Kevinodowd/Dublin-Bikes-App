@@ -20,9 +20,21 @@
         <h3>Please Plan Your Trip:</h3>
 
         <label for="startLoc">Starting location</label><br />
-        <input type="text" id="startLoc" name="startLoc" value="" placeholder='From...' /><br />
+        <input
+          type="text"
+          id="startLoc"
+          name="startLoc"
+          value=""
+          placeholder="From..."
+        /><br />
         <label for="endLoc">Destination</label><br />
-        <input type="text" id="endLoc" name="endLoc" value="" placeholder='To...' /><br />
+        <input
+          type="text"
+          id="endLoc"
+          name="endLoc"
+          value=""
+          placeholder="To..."
+        /><br />
 
         <!-- <label for="birthday">Return time:</label>
         <input type="datetime-local" id="returnTime" name="returnTime" /> -->
@@ -39,11 +51,16 @@
             value="Reset"
             onclick="return resetLocationInputs()"
           />
+
+          <p id="selectedStationInfo"></p>
         </div>
       </div>
       <div id="barchartContainer">
         <h3>Occupancy Statistics:</h3>
-        <p id="occupancyTip">Please click a station icon on the map to check the occupancy data for that station.</p>
+        <p id="occupancyTip">
+          Please click a station icon on the map to check the occupancy data for
+          that station.
+        </p>
         <button
           class="occupancyBtn"
           id="todayChartBtn"

@@ -17,7 +17,7 @@ body {
   overflow: hidden;
 }
 
-#form {
+#form #barchartContainer {
   width: 89.5%;
   margin: 1rem;
   height: 40vh;
