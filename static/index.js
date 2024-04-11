@@ -735,45 +735,35 @@ window.goToLocation = async function (startLocString, endLocString) {
       //   "start"
       // );
 
-      // const startContent = document.createElement("div");
-      // startContent.className = "endContent";
-      // startContent.textContent = "Start";
+      const startContent = document.createElement("div");
+      startContent.className = "endContent";
+      startContent.textContent = "Start";
 
-      // startMarker = new AdvancedMarkerElement({
-      //   map,
-      //   position: {
-      //     lat: startLocation.geometry.location.lat,
-      //     lng: startLocation.geometry.location.lng,
-      //   },
-      //   content: startContent,
-      // });
+      startMarker = new AdvancedMarkerElement({
+        map,
+        position: {
+          lat: startLocation.geometry.location.lat,
+          lng: startLocation.geometry.location.lng,
+        },
+        content: startContent,
+      });
 
-      // currentMarkers.push(startMarker);
+      currentMarkers.push(startMarker);
 
-      // const endMarker = await generateIcon(
-      //   {
-      //     [STATION_STRUCTURE.ID]: "endMarker",
-      //     [STATION_STRUCTURE.ADDRESS]: endLocation.name,
-      //     [STATION_STRUCTURE.LATITUDE]: endLocation.geometry.location.lat,
-      //     [STATION_STRUCTURE.LONGITUDE]: endLocation.geometry.location.lng,
-      //   },
-      //   "end"
-      // );
+      const endContent = document.createElement("div");
+      endContent.className = "endContent";
+      endContent.textContent = "Finish";
 
-      // const endContent = document.createElement("div");
-      // endContent.className = "endContent";
-      // endContent.textContent = "Finish";
+      endMarker = new AdvancedMarkerElement({
+        map,
+        position: {
+          lat: endLocation.geometry.location.lat,
+          lng: endLocation.geometry.location.lng,
+        },
+        content: endContent,
+      });
 
-      // endMarker = new AdvancedMarkerElement({
-      //   map,
-      //   position: {
-      //     lat: endLocation.geometry.location.lat,
-      //     lng: endLocation.geometry.location.lng,
-      //   },
-      //   content: endContent,
-      // });
-
-      // currentMarkers.push(endMarker);
+      currentMarkers.push(endMarker);
 
       //set the map center to the middle point of the start and end
       // map.setCenter({
