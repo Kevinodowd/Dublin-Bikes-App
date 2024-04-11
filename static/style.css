@@ -1,62 +1,99 @@
 /* 
- * Always set the map height explicitly to define the size of the div element
- * that contains the map. 
- */
+* Always set the map height explicitly to define the size of the div element
+* that contains the map. 
+*/
 
 /*
- * Optional: Makes the sample page fill the window. 
- */
+* Optional: Makes the sample page fill the window. 
+*/
 html,
 body {
   height: 100%;
+  width: 100%;
   width: 100%;
   margin: 0;
   padding: 0;
   display: flex;
   box-sizing: border-box;
-  flex-direction: row;
+  overflow: hidden;
 }
-/* #overlayInfo {
-  height: 100%;
-  width: 25vw;
-  display: flex;
-  flex-direction: row;
-  border: 3px solid black;
-  align-items: center;
-  background-color: white;
-  z-index: 100;
-} */
 
-#form {
-  width: 18vw;
-  margin-left: 0.5rem;
-  align-self: center;
-  z-index: 100;
+#form #barchartContainer {
+  width: 89.5%;
+  margin: 1rem;
+  height: 40vh;
+}
+
+#form input[type="text"],
+#form input[type="datetime-local"] {
+  border: none; /* Removed border */
+  background-color: #2d2c2c; /* Blue background color */
+  color: white;
+  padding: 0.5rem;
+  margin-bottom: 0.5rem;
+  border-radius: 5px;
+  width: 20.5vw;
+}
+
+#form input[type="submit"],
+#form input[type="reset"] {
+  border: none; /* Removed border */
+  background-color: #2d2c2c; /* Blue background color */
+  color: white;
+  padding: 0.5rem;
+  margin-bottom: 0.5rem;
+  border-radius: 5px;
+  width: 10vw;
 }
 
 #map-container {
+  flex-grow: 1;
+  display: flex;
   flex-direction: column;
-  width: 100%;
   position: relative;
-  display: inline-block;
 }
 
 #map {
-  padding: 0;
-  margin: 0;
-  height: 100%;
-  /* flex-grow: 1; */
-  z-index: 9;
-  border: 3px solid black;
+  height: calc(100% - 6vh); /* Adjusted height */
+  width: 75vw;
+  /* border: 3px solid black; */
 }
 
-#switchIconBtn {
-  background-color: aqua;
+#buttonContainer {
+  display: flex;
+  justify-content: center;
+  margin-top: 0.5rem;
+  background-color: #4cd7a3;
+}
+
+#buttonContainer button {
+  margin: 0.5rem;
+  padding: 0.5rem 1rem;
+  border: none; /* Removed border */
+  border-radius: 5px;
+  /* background-color: #2196f3; Blue background color */
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+#buttonContainer button:hover {
+  background-color: #0e75b5; /* Darker blue on hover */
+}
+
+#availableBikes {
+  background-color: #1dc83f;
+}
+
+#availableSpaces {
+  background-color: #125fe6;
+  color: white;
 }
 
 .disabled {
   opacity: 0.5;
   cursor: not-allowed;
+  pointer-events: none;
 }
 
 .availabilityButton {
@@ -64,29 +101,65 @@ body {
 }
 
 #overlayInfo {
-  position: absolute;
-  background: rgba(240, 240, 240, 0.5);
-  font-weight: bold;
-  text-align: center;
-  z-index: 10;
-  top: 0px;
-  left: 0;
-  right: 0;
-  margin: 0 auto;
-  width: 40%;
+  height: 6vh; /* Smaller height */
+  background-color: #2d2c2c; /* Transparent white */
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-bottom: 2px solid #ddd;
 }
 
-/* #mapSection {
-  /* height: 100vh; */
-  /* width: 100%;
-  position: relative;
-  display: inline-block;
-} */ 
+#leftbar {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  border: none; /* Removed border */
+  background-color: #f9f9f9;
+  z-index: 100;
+}
 
-#buttonContainer{
+.occupancyBtn {
+  display: none;
+  background-color: #2d2c2c;
+  color: white;
+}
+
+.barchart {
+  display: none;
+  width: 25vw;
+  height: 40vh;
+}
+
+#todayChart {
+  display: inline-block;
+}
+
+.endContent {
+  background-color: #125fe6;
+  border-radius: 8px;
+  color: #ffffff;
+  font-size: 14px;
+  padding: 10px 15px;
+  position: relative;
+}
+
+.endContent::after {
+  content: "";
   position: absolute;
-  z-index: 10;
-  top: 8%;
-  right: 10px;
-  width: 200px;
+  left: 50%;
+  top: 100%;
+  transform: translate(-50%, 0);
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-top: 8px solid #125fe6;
+}
+
+.select {
+  cursor: pointer;
+  background-color: #2d2c2c;
+  color: white;
 }

@@ -1,12 +1,16 @@
 // Initialize and add the map
 let map;
 let currentMarkers = [];
+let directionsRenderer;
+let startMarker, endMarker;
 
 const { Map, InfoWindow } = await google.maps.importLibrary("maps");
 const { AdvancedMarkerElement, PinElement, AdvancedMarkerClickEvent } =
   await google.maps.importLibrary("marker");
 
-const infoWindow = new InfoWindow();
+let infoWindowArray = [];
+
+const { Place } = await google.maps.importLibrary("places");
 
 const stations_json = await fetchStations();
 
@@ -25,7 +29,7 @@ const STATION_STRUCTURE = {
   BIKE_NUM: 6,
   BIKE_STANDS: 7,
   FETCH_TIME: 8,
-  LAST_UPDATE: 9
+  LAST_UPDATE: 9,
 };
 
 function clearMarkers() {
@@ -54,17 +58,16 @@ spaceBtn.addEventListener("click", () => {
 async function initMap(stations_json) {
   try {
     // const stations_json =
-    console.log(stations_json);
+    //console.log(stations_json);
 
     //set the position to dublin
     const position = { lat: 53.3498, lng: -6.2603 };
 
     map = new Map(document.getElementById("map"), {
-      zoom: 13.5,
+      zoom: 13.2,
       center: position,
-      mapId: "Dublin",
+      mapId: "ca9c8053cd850a9c",
     });
-
     console.log("generate a map.");
 
     // Add markers to current markers list. Async in order to add the marker, not the promise for each
@@ -74,9 +77,53 @@ async function initMap(stations_json) {
     });
 
     console.log("generate stations.");
-  } catch (error) {
+  ///////////////////
+  window.directionsService = new google.maps.DirectionsService();
+  ///////////////////////
+  } 
+  catch (error) {
     console.log(error);
   }
+}
+
+function calculateAndDisplayRoute(startStation, endStation) {
+  directionsService
+    .route({
+      origin: {lat: startStation.station[STATION_STRUCTURE.LATITUDE], lng: startStation.station[STATION_STRUCTURE.LONGITUDE]},
+      destination: {lat: endStation.station[STATION_STRUCTURE.LATITUDE], lng: endStation.station[STATION_STRUCTURE.LONGITUDE]},
+      travelMode: google.maps.TravelMode.BICYCLING,
+    })
+    .then((response) => {
+      directionsRenderer = new google.maps.DirectionsRenderer({
+        suppressMarkers: true,
+        preserveViewport: true,
+        polylineOptions: {strokeColor: 'red'},
+      });
+      console.log(response.routes[0].legs[0].distance.text)
+      directionsRenderer.setMap(map);
+      directionsRenderer.setDirections(response);
+      setBoundsToStartEnd();
+    })
+    .catch((e) => console.log("Directions could not be displayed."));
+}
+
+async function routeForStationsIcon() {
+  startStation = document.querySelector('.start');
+  endStation = document.querySelector('.destination');
+  console.log(startStation,endLocation);
+  // directionsService
+  //   .route({
+  //     origin: {lat: startStation.station[STATION_STRUCTURE.LATITUDE], lng: startStation.station[STATION_STRUCTURE.LONGITUDE]},
+  //     destination: {lat: endStation.station[STATION_STRUCTURE.LATITUDE], lng: endStation.station[STATION_STRUCTURE.LONGITUDE]},
+  //     travelMode: google.maps.TravelMode.BICYCLING,
+  //   })
+  //   .then((response) => {
+  //     directionsRenderer = new google.maps.DirectionsRenderer();
+  //     console.log(response.routes[0].legs[0].distance.text)
+  //     directionsRenderer.setMap(map);
+  //     directionsRenderer.setDirections(response);
+  //   })
+  //   .catch((e) => console.log("Directions could not be displayed."));
 }
 
 function timestampToDatetime(timestamp) {
@@ -111,15 +158,16 @@ async function getOverlayDate() {
   const now = new Date();
   const year = now.getFullYear();
   const month = now.toLocaleString("en-US", { month: "long" });
-  const day = formatNumberToString(now.getDay());
+  const day = formatNumberToString(now.getDate());
   const hour = formatNumberToString(now.getHours());
   const minute = formatNumberToString(now.getMinutes());
 
   const currentDate = `${day} ${month} ${year}`;
   const currentTime = `${hour}:${minute}`;
-  const overlayDate = `<p style="margin-block: 0em;">Today is ${currentDate}</p>
-      <p style="margin-block: 0em;">Current time: ${currentTime}</p>`;
-  document.getElementById("overlayInfo").innerHTML += overlayDate;
+  const overlayDate = `<p style="margin-block: 0em;">Today is ${currentDate}, Current time: ${currentTime} &nbsp;</p>`;
+
+  const overlayInfo = document.getElementById('overlayInfo');
+  overlayInfo.innerHTML = overlayDate;
 }
 
 async function initWeather(weather) {
@@ -184,8 +232,8 @@ function IconColor(station, type = "bike") {
     if (spaceLeft * 1 === 0) {
       return new PinElement({
         glyphColor: "white",
-        background: "#9A9898",
-        borderColor: "#9A9898",
+        background: "#F80303",
+        borderColor: "#F80303",
       });
     } else {
       return new PinElement({
@@ -223,8 +271,8 @@ function IconColor(station, type = "bike") {
     if (bikeLeft * 1 === 0) {
       return new PinElement({
         glyphColor: "white",
-        background: "#9A9898",
-        borderColor: "#9A9898",
+        background: "#F80303",
+        borderColor: "#F80303",
       });
     } else {
       return new PinElement({
@@ -238,7 +286,7 @@ function IconColor(station, type = "bike") {
 }
 
 function changeIcon(stations_json) {
-  console.log("change icon function triggered.");
+  //console.log("change icon function triggered.");
   clearMarkers();
   //console.log(currentMarkers);
   let target;
@@ -263,7 +311,10 @@ function changeIcon(stations_json) {
 }
 
 async function generateIcon(station, type) {
-  const position = { lat: station[STATION_STRUCTURE.LATITUDE], lng: station[STATION_STRUCTURE.LONGITUDE] };
+  const position = {
+    lat: station[STATION_STRUCTURE.LATITUDE],
+    lng: station[STATION_STRUCTURE.LONGITUDE],
+  };
 
   const pinBackground = IconColor(station, type);
 
@@ -278,16 +329,13 @@ async function generateIcon(station, type) {
   // Marker event listener for mouseover
   if (type != "start" && type != "end") {
     marker.addListener("gmp-click", () => {
-      // document.getElementById("temperature").innerText = ` ${Math.floor(
-      //   station[11] - 273.15
-      // )} °C`;
-      // document.getElementById(
-      //   "icon"
-      // ).innerHTML = `<img class="weathericon" src=https://openweathermap.org/img/wn/${station[10]}@2x.png>`;
-      // document.getElementById("weather").innerText = `${station[8]}: `;
-      // document.getElementById("description").innerText = station[9];
-      //infoWindow.close();
-
+      //infoWindow.close()
+      if(infoWindowArray.length != 0){
+        infoWindowArray[0].close();
+        infoWindowArray = []
+      }
+      const infoWindow = new InfoWindow();
+      infoWindowArray.push(infoWindow);
       map.setZoom(17);
 
       map.setCenter(marker.position);
@@ -297,45 +345,98 @@ async function generateIcon(station, type) {
       } else {
         cardAccepted = "No";
       }
+
       const infoWindowContent = `
-      <div class="infoWindowContainer" id=${station[STATION_STRUCTURE.ID]}>
+    <div class="infoWindowContainer" id="station-${station[STATION_STRUCTURE.ID]}">
       <h3>No.${station[STATION_STRUCTURE.ID]} ${marker.title}</h3>
       <p>credit card accepted: ${cardAccepted}</p>
       <p>available bikes: ${station[STATION_STRUCTURE.BIKE_NUM]}</p>
       <p>available spaces: ${station[STATION_STRUCTURE.BIKE_STANDS]}</p>
       <p>last update at: ${timestampToDatetime(station[STATION_STRUCTURE.LAST_UPDATE] * 1000)}</p>
-      <button class="occupancy" onclick ="generateOccupancy(${
-        station[STATION_STRUCTURE.ID]
-      })">More details...</button>
+      <button id="selectBtnStart" data-role="start">SELECT AS START</button>
+      <button id="selectBtnDestination" data-role="destination">SELECT AS DESTINATION</button>
       </div>
       `;
 
       infoWindow.setContent(infoWindowContent);
       infoWindow.open(marker.map, marker);
+
+      
+      infoWindow.addListener('domready', () => {
+        // Ensure the content is rendered
+        const selectBtnStart = document.getElementById('selectBtnStart');
+        const selectBtnDestination = document.getElementById('selectBtnDestination');
+
+        const selectBtns = [selectBtnStart,selectBtnDestination];
+      
+        selectBtns.forEach(button => { 
+          console.log(station[STATION_STRUCTURE.ADDRESS],station[STATION_STRUCTURE.BIKE_NUM]);
+          if(station[STATION_STRUCTURE.BIKE_NUM] === 0 && button.getAttribute('data-role')==='start'){button.disabled=true}
+          else if(station[STATION_STRUCTURE.BIKE_STANDS] === 0 && button.getAttribute('data-role')==='destination'){button.disabled=true}
+          button.addEventListener('click', function() {
+            const role = this.getAttribute('data-role');
+            selectStation(station, role,marker,type);
+            clearStartOrEnd(role);
+            button.classList.add(role);
+          });
+        
+        });
+
+        //selectBtns = [];
+      });
+
+      function clearStartOrEnd(status){
+       let btns = document.querySelectorAll(`.{status}`);
+       btns.forEach(button=>{
+        button.classList.remove(status);
+       })
+      }
+
+      generateOccupancy(station[STATION_STRUCTURE.ID],station[STATION_STRUCTURE.ADDRESS]);
     });
+    
   }
 
-  async function showLeftBar() {
-    mapClass = document.getElementById("map").classList;
-    if ("showLeft" in mapClass) {
-    }
-  }
   return marker;
 }
 
-window.generateOccupancy = async (station_id) => {
+
+window.selectStation = (station,role,marker,type)=>{
+ const stationAddress = station[STATION_STRUCTURE.ADDRESS];
+ const pinBackground = IconColor(station,type);
+pinBackground.scale = 1.5;
+marker.content = pinBackground.element;
+ if(role === 'start'){
+    startLocationInput.value = stationAddress;
+
+ }else{
+    endLocationInput.value = stationAddress;
+ }
+}
+
+window.connect
+
+window.generateOccupancy = async (station_id,station_address) => {
   try {
+    document.getElementById('occupancyTip').innerText = `Loading the occupancy charts for station No.${station_id}: ${station_address}...`;
     const response = await fetch(`/stations/${station_id}/availability`);
     if (!response.ok) {
       throw new Error("Failed to fetch data.");
     }
     const availability = await response.json();
 
-    //availablity: stationid,status,lastupdate,stands, bikes, fetchtime
-    //console.log(availability);
-
     const todayAvailablity = await getTodayAvailabiliy(availability);
     const dailyAvg = await calculateDailyBikeNumbers(availability);
+    const occupancyBtns = document.getElementsByClassName('occupancyBtn');
+    
+    for (let i = 0; i < occupancyBtns.length; i++) {
+      // Change the display style of each element
+      //console.log(occupancyBtns[i]);
+      occupancyBtns[i].style.display = 'inline-block'; // This will hide the elements
+  }
+
+    const occupancyTip = document.getElementById('occupancyTip');
+    occupancyTip.innerText = `You've selected station No.${station_id}: ${station_address}.`
 
     generateTodayBarChart(todayAvailablity, "todayChart");
     generateAvgBarChart(dailyAvg, "dailyAvgChart");
@@ -346,11 +447,13 @@ window.generateOccupancy = async (station_id) => {
 };
 
 function generateTodayBarChart(data_input, barchartSection) {
+  if (data_input.length > 0) {
   let trace1 = {
     x: [],
     y: [],
     name: "bike",
     type: "bar",
+    marker: { color: "rgb(29, 200, 63)" },
   };
 
   var trace2 = {
@@ -358,6 +461,7 @@ function generateTodayBarChart(data_input, barchartSection) {
     y: [],
     name: "space",
     type: "bar",
+    marker: { color: "rgb(18, 95, 230)" },
   };
 
   data_input.forEach((row) => {
@@ -371,11 +475,24 @@ function generateTodayBarChart(data_input, barchartSection) {
 
   const layout = {
     title: "today's occupancy",
-    font: { size: 15 },
+    font: { size: 12.5 },
     barmode: "stack",
-  };
+      // attempts below to change xticks/xtitle rotation etc.. further check
+      // autosize: true,
+      // width: 300,
+      // height: 220,
+      // xaxis: {title: None},
+      // xanchor: center,
+      // xref: 'container', 
+      // xaxis: {automargin: true},
+    };
 
-  Plotly.newPlot(barchartSection, data, layout);
+    Plotly.react(barchartSection, data, layout);
+  } else {
+    document.getElementById(
+      barchartSection
+    ).innerHTML = `<p>Do not have today's data...</p>`;
+  }
 }
 
 function generateAvgBarChart(dailyAvgData, barchartSection) {
@@ -384,6 +501,7 @@ function generateAvgBarChart(dailyAvgData, barchartSection) {
     y: [],
     name: "bike",
     type: "bar",
+    marker: { color: "rgb(29, 200, 63)" },
   };
 
   var trace2 = {
@@ -391,10 +509,11 @@ function generateAvgBarChart(dailyAvgData, barchartSection) {
     y: [],
     name: "space",
     type: "bar",
+    marker: { color: "rgb(18, 95, 230)" },
   };
 
   Object.keys(dailyAvgData).forEach((date) => {
-    console.log(date);
+    //console.log(date);
     trace1["x"].push(date);
     trace1["y"].push(dailyAvgData[date]["avgBike"]);
     trace2["y"].push(dailyAvgData[date]["avgSpace"]);
@@ -409,8 +528,10 @@ function generateAvgBarChart(dailyAvgData, barchartSection) {
     barmode: "stack",
   };
 
-  Plotly.newPlot(barchartSection, data, layout);
+  Plotly.react(barchartSection, data, layout);
 }
+
+async function generatePredictBarchart() {}
 
 async function getTodayAvailabiliy(data) {
   const ct = Date.now();
@@ -432,7 +553,7 @@ async function getTodayAvailabiliy(data) {
     }
   }
 
-  console.log(td);
+  //console.log(td);
   return td;
 }
 
@@ -463,10 +584,35 @@ async function calculateDailyBikeNumbers(data) {
   return dailyCounts;
 }
 
+function showChart(state) {
+  console.log("function showChart is triggered...");
+
+  //adjust the charts' state
+  const occupancyCharts = document.getElementsByClassName("barchart");
+  Array.from(occupancyCharts).forEach((chart) => {
+    const chartId = chart.id.toLowerCase(); // Convert chart ID to lowercase for comparison
+
+    if (chartId.includes(state.toLowerCase())) {
+      chart.style.display = "inline-block";
+    } else {
+      chart.style.display = "none";
+    }
+  });
+}
+
+const todayChartBtn = document.getElementById("todayChartBtn");
+const dailyAvgChartBtn = document.getElementById("dailyAvgChartBtn");
+todayChartBtn.addEventListener("click", () => {
+  showChart("today");
+});
+dailyAvgChartBtn.addEventListener("click", () => {
+  showChart("dailyAvg");
+});
+
 /**
  * Reset the location input fields
  */
-window.resetLocationInputs = async function() {
+window.resetLocationInputs = async function () {
   startLocationInput.value = "";
   endLocationInput.value = "";
   clearMarkers();
@@ -474,7 +620,8 @@ window.resetLocationInputs = async function() {
     const marker = await generateIcon(station, "bike");
     currentMarkers.push(marker);
   });
-}
+  directionsRenderer.setMap(null);
+};
 
 /**
  * Find nearest locations and filter map
@@ -482,12 +629,15 @@ window.resetLocationInputs = async function() {
  * @param {string} startLocString start location search string
  * @param {string} endLocString end location search string
  */
-window.goToLocation = async function(startLocString, endLocString) {
+window.goToLocation = async function (startLocString, endLocString) {
   if (startLocString?.length > 0 && endLocString?.length > 0) {
     const possibleStartLocations = await fetchLocation(startLocString);
     const possibleEndLocations = await fetchLocation(endLocString);
 
-    if (possibleStartLocations?.candidates?.length > 0 && possibleEndLocations?.candidates?.length > 0 ) {
+    if (
+      possibleStartLocations?.candidates?.length > 0 &&
+      possibleEndLocations?.candidates?.length > 0
+    ) {
       // Take the first candidate as our location
       const startLocation = possibleStartLocations.candidates[0];
       const endLocation = possibleEndLocations.candidates[0];
@@ -497,36 +647,80 @@ window.goToLocation = async function(startLocString, endLocString) {
       endLocationInput.value = endLocation.name;
 
       // Get sorted list of places with distances from the given location
-      const locationsNearStartLocation = getDistancesToLocation(startLocation.geometry.location.lat, startLocation.geometry.location.lng).slice(0, 3);
-      const locationsNearEndLocation = getDistancesToLocation(endLocation.geometry.location.lat, endLocation.geometry.location.lng).slice(0, 3);
+      const locationsNearStartLocation = getDistancesToLocation(
+        startLocation.geometry.location.lat,
+        startLocation.geometry.location.lng
+      ).slice(0, 3);
+      const locationsNearEndLocation = getDistancesToLocation(
+        endLocation.geometry.location.lat,
+        endLocation.geometry.location.lng
+      ).slice(0, 3);
       
       clearMarkers();
+      if (!!directionsRenderer) {
+        directionsRenderer.setMap(null);
+      }
+      
 
-      const startMarker = await generateIcon({
-        [STATION_STRUCTURE.ID]: "startMarker",
-        [STATION_STRUCTURE.ADDRESS]: startLocation.name,
-        [STATION_STRUCTURE.LATITUDE]: startLocation.geometry.location.lat,
-        [STATION_STRUCTURE.LONGITUDE]: startLocation.geometry.location.lng
-      }, "start");
+      // const startMarker = await generateIcon(
+      //   {
+      //     [STATION_STRUCTURE.ID]: "startMarker",
+      //     [STATION_STRUCTURE.ADDRESS]: startLocation.name,
+      //     [STATION_STRUCTURE.LATITUDE]: startLocation.geometry.location.lat,
+      //     [STATION_STRUCTURE.LONGITUDE]: startLocation.geometry.location.lng,
+      //   },
+      //   "start"
+      // );
+
+      const startContent = document.createElement("div");
+      startContent.className = "endContent";
+      startContent.textContent = "Start";
+
+      startMarker = new AdvancedMarkerElement({
+        map,
+        position: {
+          lat: startLocation.geometry.location.lat,
+          lng: startLocation.geometry.location.lng,
+        },
+        content: startContent,
+      });
+
       currentMarkers.push(startMarker);
 
-      const endMarker = await generateIcon({
-        [STATION_STRUCTURE.ID]: "endMarker",
-        [STATION_STRUCTURE.ADDRESS]: endLocation.name,
-        [STATION_STRUCTURE.LATITUDE]: endLocation.geometry.location.lat,
-        [STATION_STRUCTURE.LONGITUDE]: endLocation.geometry.location.lng
-      }, "end");
+      const endContent = document.createElement("div");
+      endContent.className = "endContent";
+      endContent.textContent = "Finish";
+
+      endMarker = new AdvancedMarkerElement({
+        map,
+        position: {
+          lat: endLocation.geometry.location.lat,
+          lng: endLocation.geometry.location.lng,
+        },
+        content: endContent,
+      });
+
       currentMarkers.push(endMarker);
 
+      //set the map center to the middle point of the start and end
+      // map.setCenter({
+      //   lat: (endMarker.position.lat + startMarker.position.lat) / 2,
+      //   lng: (endMarker.position.lng + startMarker.position.lng) / 2,
+      // });
+
+      // map.setZoom(13);
+
       locationsNearStartLocation.forEach(async (station) => {
-        const marker = await generateIcon(station.station, "nearToStart");
+        const marker = await generateIcon(station.station, "bike");
         currentMarkers.push(marker);
       });
 
       locationsNearEndLocation.forEach(async (station) => {
-        const marker = await generateIcon(station.station, "nearToEnd");
+        const marker = await generateIcon(station.station, "space");
         currentMarkers.push(marker);
       });
+
+      calculateAndDisplayRoute(locationsNearStartLocation[0], locationsNearEndLocation[0]);
     } else {
       // No location results!
       alert("Enter values before submit");
@@ -534,6 +728,19 @@ window.goToLocation = async function(startLocString, endLocString) {
   } else {
     alert("Enter values before submit");
   }
+};
+
+function setBoundsToStartEnd() {
+  const bounds = new google.maps.LatLngBounds();
+  const startPosition = startMarker.position;
+  const endPosition = endMarker.position;
+
+  bounds.extend( startPosition );
+  bounds.extend( endPosition );
+  currentMarkers.forEach(function(marker) {
+    bounds.extend(marker.position);
+  });
+  map.fitBounds( bounds );
 }
 
 /**
@@ -544,7 +751,7 @@ window.goToLocation = async function(startLocString, endLocString) {
  */
 function deg2rad(degrees) {
   // SOURCE https://stackoverflow.com/a/27943
-  return degrees * (Math.PI / 180)
+  return degrees * (Math.PI / 180);
 }
 
 /**
@@ -559,12 +766,14 @@ function deg2rad(degrees) {
 function getDistance(lat1, lon1, lat2, lon2) {
   // SOURCE https://stackoverflow.com/a/27943
   const earthRadius = 6371; // Radius of the earth in km
-  const dLat = deg2rad(lat2-lat1);
-  const dLon = deg2rad(lon2-lon1);
+  const dLat = deg2rad(lat2 - lat1);
+  const dLon = deg2rad(lon2 - lon1);
   const a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
-    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    Math.cos(deg2rad(lat1)) *
+      Math.cos(deg2rad(lat2)) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   const d = earthRadius * c; // Distance in km
   return d;
@@ -578,12 +787,17 @@ function getDistance(lat1, lon1, lat2, lon2) {
  * @returns a list of stations
  */
 function getDistancesToLocation(lat, long) {
-  const distances = stations_json.map(station => {
+  const distances = stations_json.map((station) => {
     return {
       station: station,
       // Get distance from given location to station location
-      distance: getDistance(lat, long, station[STATION_STRUCTURE.LATITUDE], station[STATION_STRUCTURE.LONGITUDE])
-    }
+      distance: getDistance(
+        lat,
+        long,
+        station[STATION_STRUCTURE.LATITUDE],
+        station[STATION_STRUCTURE.LONGITUDE]
+      ),
+    };
   });
   // Smallest to largest
   return distances.sort((a, b) => a.distance - b.distance);
@@ -601,6 +815,7 @@ async function fetchLocation(loc) {
     throw error;
   }
 }
+
 
 await getOverlayDate();
 await initWeather();

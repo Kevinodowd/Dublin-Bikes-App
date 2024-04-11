@@ -17,16 +17,30 @@
   <body>
     <div id="leftbar">
       <div id="form">
-        <label for="startLoc">Please enter your starting location</label><br />
-        <input type="text" id="startLoc" name="startLoc" value="" /><br />
-        <label for="endLoc">Please enter your destination</label><br />
-        <input type="text" id="endLoc" name="endLoc" value="" /><br /><br />
+        <h3>Please Plan Your Trip:</h3>
+
+        <label for="startLoc">Starting location</label><br />
+        <input
+          type="text"
+          id="startLoc"
+          name="startLoc"
+          value=""
+          placeholder="From..."
+        /><br />
+        <label for="endLoc">Destination</label><br />
+        <input
+          type="text"
+          id="endLoc"
+          name="endLoc"
+          value=""
+          placeholder="To..."
+        /><br />
 
         <!-- <label for="birthday">Return time:</label>
         <input type="datetime-local" id="returnTime" name="returnTime" /> -->
 
         <!-- <button onclick="goToLocation(fromLoc.value, toLoc.value)"> -->
-        <p>
+        <div>
           <input
             type="submit"
             value="Submit"
@@ -35,17 +49,41 @@
           <input
             type="reset"
             value="Reset"
-            onclick="return resetLocationInputs()"/>
-        </p>
+            onclick="return resetLocationInputs()"
+          />
+
+          <p id="selectedStationInfo"></p>
+        </div>
       </div>
       <div id="barchartContainer">
+        <h3>Occupancy Statistics:</h3>
+        <p id="occupancyTip">
+          Please click a station icon on the map to check the occupancy data for
+          that station.
+        </p>
+        <button
+          class="occupancyBtn"
+          id="todayChartBtn"
+          onlick="showChart('today')"
+        >
+          today
+        </button>
+        <button
+          class="occupancyBtn"
+          id="dailyAvgChartBtn"
+          onlick="showChart('dailyAvg')"
+        >
+          daily average
+        </button>
+        <button class="occupancyBtn">next 6 hours predict</button>
         <div id="todayChart" class="barchart"></div>
         <div id="dailyAvgChart" class="barchart"></div>
+        <div id="predictChart" class="barchart"></div>
       </div>
     </div>
 
     <div id="map-container">
-      <div id="overlayInfo"></div>
+      <div id="overlayInfo">Loading the current weather ...</div>
       <div id="buttonContainer">
         <button type="button" id="availableBikes" class="availabilityButton disabled">
           Available bikes
@@ -54,7 +92,7 @@
           Available spaces
         </button>
       </div>
-      <div id="map"></div>
+      <div id="map">Loading the map...</div>
     </div>
 
     <!-- copy down from google api map document-->
