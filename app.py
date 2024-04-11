@@ -1,4 +1,4 @@
-from flask import Flask,render_template,jsonify
+from flask import Flask, render_template, jsonify
 from scraper import sqlEngine
 import pandas as pd
 import requests
@@ -6,7 +6,7 @@ from config import *
 from jinja2 import TemplateNotFound
 
 
-app = Flask(__name__,static_url_path = '')
+app = Flask(__name__, static_url_path='')
 app.config.from_object('config')
 
 # @app.route('/')
@@ -27,6 +27,7 @@ def root():
     except Exception as e:
         return f"An error occurred: {str(e)}", 500
 
+
 @app.route('/stations')
 def stations():
     try:
@@ -45,7 +46,9 @@ def stations():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@app.route('/stations/<int:station_id>/availability') #The current availibility of bikes at a given station
+
+# The current availibility of bikes at a given station
+@app.route('/stations/<int:station_id>/availability')
 def station_availability(station_id):
     # Connect to the database
     try:
@@ -53,11 +56,10 @@ def station_availability(station_id):
         availability_data = sqlEngine.connect_to_rds(sqlCommand)
         # Assuming you have a way to convert the row data to a dictionary or you fetch it as such
         # If your data is not already a dict, you will need to convert it
-        #availability_dict = [dict(row) for row in availability_data]
+        # availability_dict = [dict(row) for row in availability_data]
         return availability_data
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
 
 
 @app.route('/weather')
@@ -70,31 +72,30 @@ def dublinWeather():
         return currentWeather_json
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-    
+
 # def get_CurrentWeather(engine):
 #     #engine = generate_mysqlEnginelocal('dbikes')
 #     cw_df = pd.read_sql("SELECT * FROM currentWeather",con=engine)
 #     cw_df.to_json('/static/currentWeather.json',orient='records',lines=True)
 
+
 @app.route('/searchLocation/<loc>')
 def searchLocation(loc):
     r = requests.get("https://maps.googleapis.com/maps/api/place/findplacefromtext/json",
-        params={
-            "fields": "formatted_address,name,geometry",
-            "input": loc,
-            "inputtype": "textquery",
-            "locationbias": "circle:100000@53.34982,-6.2603", #100km from dublin
-            "key": "AIzaSyBqVFiTmghTjDgdJQG11k3VXyLWdpZT4VA"
-        })
+                     params={
+                         "fields": "formatted_address,name,geometry",
+                         "input": loc,
+                         "inputtype": "textquery",
+                         "locationbias": "circle:100000@53.34982,-6.2603",  # 100km from dublin
+                         "key": "AIzaSyBqVFiTmghTjDgdJQG11k3VXyLWdpZT4VA"
+                     })
     return r.json()
+
 
 @app.route('/modeltraining/<int:station_id>')
 def model_traning(station_id):
     pass
 
+
 if __name__ == '__main__':
     app.run(debug=True)
-
-
-    
-

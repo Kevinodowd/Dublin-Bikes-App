@@ -77,10 +77,10 @@ async function initMap(stations_json) {
     });
 
     console.log("generate stations.");
-  ///////////////////
-  window.directionsService = new google.maps.DirectionsService();
-  ///////////////////////
-  } 
+    ///////////////////
+    window.directionsService = new google.maps.DirectionsService();
+    ///////////////////////
+  }
   catch (error) {
     console.log(error);
   }
@@ -103,7 +103,7 @@ function calculateAndDisplayRoute(startStation, endStation) {
       directionsRenderer = new google.maps.DirectionsRenderer({
         suppressMarkers: true,
         preserveViewport: true,
-        polylineOptions: {strokeColor: 'yellow'},
+        polylineOptions: { strokeColor: 'yellow' },
       });
       console.log(response.routes[0].legs[0].distance.text);
       directionsRenderer.setMap(map);
@@ -353,16 +353,15 @@ async function generateIcon(station, type) {
       }
 
       const infoWindowContent = `
-  <div class="infoWindowContainer" id="station-${
-    station[STATION_STRUCTURE.ID]
-  }">
+  <div class="infoWindowContainer" id="station-${station[STATION_STRUCTURE.ID]
+        }">
       <h3>No.${station[STATION_STRUCTURE.ID]} ${marker.title}</h3>
       <p>credit card accepted: ${cardAccepted}</p>
       <p>available bikes: ${station[STATION_STRUCTURE.BIKE_NUM]}</p>
       <p>available spaces: ${station[STATION_STRUCTURE.BIKE_STANDS]}</p>
   <p>last update at: ${timestampToDatetime(
-    station[STATION_STRUCTURE.LAST_UPDATE] * 1000
-  )}</p>
+          station[STATION_STRUCTURE.LAST_UPDATE] * 1000
+        )}</p>
       <button id="selectBtnStart" data-role="start">SELECT AS START</button>
       <button id="selectBtnDestination" data-role="destination">SELECT AS DESTINATION</button>
       </div>
@@ -379,7 +378,7 @@ async function generateIcon(station, type) {
         );
 
         const selectBtns = [selectBtnStart, selectBtnDestination];
-      
+
         selectBtns.forEach((button) => {
           console.log(
             station[STATION_STRUCTURE.ADDRESS],
@@ -403,7 +402,7 @@ async function generateIcon(station, type) {
             button.classList.add(role);
             console.log(button.classList);
           });
-        
+
         });
 
         //selectBtns = [];
@@ -413,7 +412,7 @@ async function generateIcon(station, type) {
         let btns = document.querySelectorAll(`.${status}`);
         console.log(btns, `.${status}`);
         btns.forEach((button) => {
-        button.classList.remove(status);
+          button.classList.remove(status);
         });
       }
 
@@ -428,17 +427,17 @@ async function generateIcon(station, type) {
 }
 
 window.selectStation = (station, role, marker, type) => {
- const stationAddress = station[STATION_STRUCTURE.ADDRESS];
+  const stationAddress = station[STATION_STRUCTURE.ADDRESS];
   const pinBackground = IconColor(station, type);
-pinBackground.scale = 1.5;
-marker.content = pinBackground.element;
+  pinBackground.scale = 1.5;
+  marker.content = pinBackground.element;
   if (role === "start") {
     startLocationInput.value = stationAddress;
     document.getElementById("selectBtnDestination").disabled = true;
   } else {
     endLocationInput.value = stationAddress;
     document.getElementById("selectBtnStart").disabled = true;
- }
+  }
 };
 
 window.connect;
@@ -457,12 +456,12 @@ window.generateOccupancy = async (station_id, station_address) => {
     const todayAvailablity = await getTodayAvailabiliy(availability);
     const dailyAvg = await calculateDailyBikeNumbers(availability);
     const occupancyBtns = document.getElementsByClassName("occupancyBtn");
-    
+
     for (let i = 0; i < occupancyBtns.length; i++) {
       // Change the display style of each element
       //console.log(occupancyBtns[i]);
       occupancyBtns[i].style.display = "inline-block"; // This will hide the elements
-  }
+    }
 
     const occupancyTip = document.getElementById("occupancyTip");
     occupancyTip.innerText = `You are checking the occupancy of station No.${station_id}: ${station_address}.`;
@@ -477,35 +476,35 @@ window.generateOccupancy = async (station_id, station_address) => {
 
 function generateTodayBarChart(data_input, barchartSection) {
   if (data_input.length > 0) {
-  let trace1 = {
-    x: [],
-    y: [],
-    name: "bike",
-    type: "bar",
-    marker: { color: "rgb(29, 200, 63)" },
-  };
+    let trace1 = {
+      x: [],
+      y: [],
+      name: "bike",
+      type: "bar",
+      marker: { color: "rgb(29, 200, 63)" },
+    };
 
-  var trace2 = {
-    x: [],
-    y: [],
-    name: "space",
-    type: "bar",
-    marker: { color: "rgb(18, 95, 230)" },
-  };
+    var trace2 = {
+      x: [],
+      y: [],
+      name: "space",
+      type: "bar",
+      marker: { color: "rgb(18, 95, 230)" },
+    };
 
-  data_input.forEach((row) => {
-    trace1["x"].push(timestampToDatetime(row[5] * 1000));
-    trace1["y"].push(row[4]);
-    trace2["y"].push(row[3]);
-  });
+    data_input.forEach((row) => {
+      trace1["x"].push(timestampToDatetime(row[5] * 1000));
+      trace1["y"].push(row[4]);
+      trace2["y"].push(row[3]);
+    });
 
-  trace2["x"] = trace1["x"];
-  const data = [trace1, trace2];
+    trace2["x"] = trace1["x"];
+    const data = [trace1, trace2];
 
-  const layout = {
-    title: "today's occupancy",
-    font: { size: 12.5 },
-    barmode: "stack",
+    const layout = {
+      title: "today's occupancy",
+      font: { size: 12.5 },
+      barmode: "stack",
       // attempts below to change xticks/xtitle rotation etc.. further check
       autosize: true,
       // width: 300,
@@ -560,7 +559,7 @@ function generateAvgBarChart(dailyAvgData, barchartSection) {
   Plotly.react(barchartSection, data, layout);
 }
 
-async function generatePredictBarchart() {}
+async function generatePredictBarchart() { }
 
 async function getTodayAvailabiliy(data) {
   const ct = Date.now();
@@ -712,17 +711,15 @@ window.goToLocation = async function (startLocString, endLocString) {
 
       document.getElementById(
         "selectedStationInfo"
-      ).innerHTML = `<p>We suggest you ride from <span style="font-weight: bold;">No.${
-        locationsNearStartLocation[0]["station"][STATION_STRUCTURE.ID] +
-        " " +
-        locationsNearStartLocation[0]["station"][STATION_STRUCTURE.ADDRESS]
+      ).innerHTML = `<p>We suggest you ride from <span style="font-weight: bold;">No.${locationsNearStartLocation[0]["station"][STATION_STRUCTURE.ID] +
+      " " +
+      locationsNearStartLocation[0]["station"][STATION_STRUCTURE.ADDRESS]
       } </span>
-      to <span style="font-weight: bold;">No.${
-        locationsNearEndLocation[0]["station"][STATION_STRUCTURE.ID] +
+      to <span style="font-weight: bold;">No.${locationsNearEndLocation[0]["station"][STATION_STRUCTURE.ID] +
         " " +
         locationsNearEndLocation[0]["station"][STATION_STRUCTURE.ADDRESS]
-      }.</span></p>`;
-      
+        }.</span></p>`;
+
       clearMarkers();
       if (!!directionsRenderer) {
         directionsRenderer.setMap(null);
@@ -861,9 +858,9 @@ function getDistance(lat1, lon1, lat2, lon2) {
   const a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
     Math.cos(deg2rad(lat1)) *
-      Math.cos(deg2rad(lat2)) *
-      Math.sin(dLon / 2) *
-      Math.sin(dLon / 2);
+    Math.cos(deg2rad(lat2)) *
+    Math.sin(dLon / 2) *
+    Math.sin(dLon / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   const d = earthRadius * c; // Distance in km
   return d;
