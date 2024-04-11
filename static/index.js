@@ -55,7 +55,7 @@ spaceBtn.addEventListener("click", () => {
   bikeBtn.classList.remove("disabled");
 });
 
-function initMap(stations_json) {
+async function initMap(stations_json) {
   try {
     // const stations_json =
     //console.log(stations_json);
@@ -80,7 +80,8 @@ function initMap(stations_json) {
     ///////////////////
     window.directionsService = new google.maps.DirectionsService();
     ///////////////////////
-  } catch (error) {
+  } 
+  catch (error) {
     console.log(error);
   }
 }
@@ -102,6 +103,7 @@ function calculateAndDisplayRoute(startStation, endStation) {
       directionsRenderer = new google.maps.DirectionsRenderer({
         suppressMarkers: true,
         preserveViewport: true,
+        polylineOptions: {strokeColor: 'red'},
       });
       console.log(response.routes[0].legs[0].distance.text);
       directionsRenderer.setMap(map);
