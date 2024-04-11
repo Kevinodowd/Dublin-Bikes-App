@@ -96,10 +96,6 @@ body {
   pointer-events: none;
 }
 
-.availabilityButton {
-  width: 200px;
-}
-
 #overlayInfo {
   height: 6vh; /* Smaller height */
   background-color: #2d2c2c; /* Transparent white */

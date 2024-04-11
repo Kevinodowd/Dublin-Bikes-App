@@ -89,17 +89,23 @@ async function initMap(stations_json) {
 function calculateAndDisplayRoute(startStation, endStation) {
   directionsService
     .route({
-      origin: {lat: startStation.station[STATION_STRUCTURE.LATITUDE], lng: startStation.station[STATION_STRUCTURE.LONGITUDE]},
-      destination: {lat: endStation.station[STATION_STRUCTURE.LATITUDE], lng: endStation.station[STATION_STRUCTURE.LONGITUDE]},
+      origin: {
+        lat: startStation.station[STATION_STRUCTURE.LATITUDE],
+        lng: startStation.station[STATION_STRUCTURE.LONGITUDE],
+      },
+      destination: {
+        lat: endStation.station[STATION_STRUCTURE.LATITUDE],
+        lng: endStation.station[STATION_STRUCTURE.LONGITUDE],
+      },
       travelMode: google.maps.TravelMode.BICYCLING,
     })
     .then((response) => {
       directionsRenderer = new google.maps.DirectionsRenderer({
         suppressMarkers: true,
         preserveViewport: true,
-        polylineOptions: {strokeColor: 'red'},
+        polylineOptions: {strokeColor: 'yellow'},
       });
-      console.log(response.routes[0].legs[0].distance.text)
+      console.log(response.routes[0].legs[0].distance.text);
       directionsRenderer.setMap(map);
       directionsRenderer.setDirections(response);
       setBoundsToStartEnd();
@@ -107,24 +113,24 @@ function calculateAndDisplayRoute(startStation, endStation) {
     .catch((e) => console.log("Directions could not be displayed."));
 }
 
-async function routeForStationsIcon() {
-  startStation = document.querySelector('.start');
-  endStation = document.querySelector('.destination');
-  console.log(startStation,endLocation);
-  // directionsService
-  //   .route({
-  //     origin: {lat: startStation.station[STATION_STRUCTURE.LATITUDE], lng: startStation.station[STATION_STRUCTURE.LONGITUDE]},
-  //     destination: {lat: endStation.station[STATION_STRUCTURE.LATITUDE], lng: endStation.station[STATION_STRUCTURE.LONGITUDE]},
-  //     travelMode: google.maps.TravelMode.BICYCLING,
-  //   })
-  //   .then((response) => {
-  //     directionsRenderer = new google.maps.DirectionsRenderer();
-  //     console.log(response.routes[0].legs[0].distance.text)
-  //     directionsRenderer.setMap(map);
-  //     directionsRenderer.setDirections(response);
-  //   })
-  //   .catch((e) => console.log("Directions could not be displayed."));
-}
+// async function routeForStationsIcon() {
+//   startStation = document.querySelector(".start");
+//   endStation = document.querySelector(".destination");
+//   console.log(startStation, endLocation);
+//   // directionsService
+//   //   .route({
+//   //     origin: {lat: startStation.station[STATION_STRUCTURE.LATITUDE], lng: startStation.station[STATION_STRUCTURE.LONGITUDE]},
+//   //     destination: {lat: endStation.station[STATION_STRUCTURE.LATITUDE], lng: endStation.station[STATION_STRUCTURE.LONGITUDE]},
+//   //     travelMode: google.maps.TravelMode.BICYCLING,
+//   //   })
+//   //   .then((response) => {
+//   //     directionsRenderer = new google.maps.DirectionsRenderer();
+//   //     console.log(response.routes[0].legs[0].distance.text)
+//   //     directionsRenderer.setMap(map);
+//   //     directionsRenderer.setDirections(response);
+//   //   })
+//   //   .catch((e) => console.log("Directions could not be displayed."));
+// }
 
 function timestampToDatetime(timestamp) {
   const date = new Date(timestamp);
@@ -166,7 +172,7 @@ async function getOverlayDate() {
   const currentTime = `${hour}:${minute}`;
   const overlayDate = `<p style="margin-block: 0em;">Today is ${currentDate}, Current time: ${currentTime} &nbsp;</p>`;
 
-  const overlayInfo = document.getElementById('overlayInfo');
+  const overlayInfo = document.getElementById("overlayInfo");
   overlayInfo.innerHTML = overlayDate;
 }
 
@@ -193,7 +199,7 @@ async function initWeather(weather) {
     );
     iconImg.setAttribute("style", "height: 2em");
     const temperature = Math.floor(weather_info[4] - 273.15);
-    const overlayDubWeather = `<p style="display: inline; margin-block: 0em;">Today's Dublin Weather: ${temperature} °C with ${weatherDescription}</p>`;
+    const overlayDubWeather = `<p style="display: inline; margin-block: 0em;">Today's Dublin Weather: ${temperature} °C with ${weatherDescription} </p>`;
     document.getElementById("overlayInfo").innerHTML += overlayDubWeather;
     document.getElementById("overlayInfo").appendChild(iconImg);
   }
@@ -330,9 +336,9 @@ async function generateIcon(station, type) {
   if (type != "start" && type != "end") {
     marker.addListener("gmp-click", () => {
       //infoWindow.close()
-      if(infoWindowArray.length != 0){
+      if (infoWindowArray.length != 0) {
         infoWindowArray[0].close();
-        infoWindowArray = []
+        infoWindowArray = [];
       }
       const infoWindow = new InfoWindow();
       infoWindowArray.push(infoWindow);
@@ -347,12 +353,16 @@ async function generateIcon(station, type) {
       }
 
       const infoWindowContent = `
-    <div class="infoWindowContainer" id="station-${station[STATION_STRUCTURE.ID]}">
+  <div class="infoWindowContainer" id="station-${
+    station[STATION_STRUCTURE.ID]
+  }">
       <h3>No.${station[STATION_STRUCTURE.ID]} ${marker.title}</h3>
       <p>credit card accepted: ${cardAccepted}</p>
       <p>available bikes: ${station[STATION_STRUCTURE.BIKE_NUM]}</p>
       <p>available spaces: ${station[STATION_STRUCTURE.BIKE_STANDS]}</p>
-      <p>last update at: ${timestampToDatetime(station[STATION_STRUCTURE.LAST_UPDATE] * 1000)}</p>
+  <p>last update at: ${timestampToDatetime(
+    station[STATION_STRUCTURE.LAST_UPDATE] * 1000
+  )}</p>
       <button id="selectBtnStart" data-role="start">SELECT AS START</button>
       <button id="selectBtnDestination" data-role="destination">SELECT AS DESTINATION</button>
       </div>
@@ -361,23 +371,37 @@ async function generateIcon(station, type) {
       infoWindow.setContent(infoWindowContent);
       infoWindow.open(marker.map, marker);
 
-      
-      infoWindow.addListener('domready', () => {
+      infoWindow.addListener("domready", () => {
         // Ensure the content is rendered
-        const selectBtnStart = document.getElementById('selectBtnStart');
-        const selectBtnDestination = document.getElementById('selectBtnDestination');
+        const selectBtnStart = document.getElementById("selectBtnStart");
+        const selectBtnDestination = document.getElementById(
+          "selectBtnDestination"
+        );
 
-        const selectBtns = [selectBtnStart,selectBtnDestination];
+        const selectBtns = [selectBtnStart, selectBtnDestination];
       
-        selectBtns.forEach(button => { 
-          console.log(station[STATION_STRUCTURE.ADDRESS],station[STATION_STRUCTURE.BIKE_NUM]);
-          if(station[STATION_STRUCTURE.BIKE_NUM] === 0 && button.getAttribute('data-role')==='start'){button.disabled=true}
-          else if(station[STATION_STRUCTURE.BIKE_STANDS] === 0 && button.getAttribute('data-role')==='destination'){button.disabled=true}
-          button.addEventListener('click', function() {
-            const role = this.getAttribute('data-role');
-            selectStation(station, role,marker,type);
+        selectBtns.forEach((button) => {
+          console.log(
+            station[STATION_STRUCTURE.ADDRESS],
+            station[STATION_STRUCTURE.BIKE_NUM]
+          );
+          if (
+            station[STATION_STRUCTURE.BIKE_NUM] === 0 &&
+            button.getAttribute("data-role") === "start"
+          ) {
+            button.disabled = true;
+          } else if (
+            station[STATION_STRUCTURE.BIKE_STANDS] === 0 &&
+            button.getAttribute("data-role") === "destination"
+          ) {
+            button.disabled = true;
+          }
+          button.addEventListener("click", function () {
+            const role = this.getAttribute("data-role");
+            selectStation(station, role, marker, type);
             clearStartOrEnd(role);
             button.classList.add(role);
+            console.log(button.classList);
           });
         
         });
@@ -385,40 +409,45 @@ async function generateIcon(station, type) {
         //selectBtns = [];
       });
 
-      function clearStartOrEnd(status){
-       let btns = document.querySelectorAll(`.{status}`);
-       btns.forEach(button=>{
+      function clearStartOrEnd(status) {
+        let btns = document.querySelectorAll(`.${status}`);
+        console.log(btns, `.${status}`);
+        btns.forEach((button) => {
         button.classList.remove(status);
-       })
+        });
       }
 
-      generateOccupancy(station[STATION_STRUCTURE.ID],station[STATION_STRUCTURE.ADDRESS]);
+      generateOccupancy(
+        station[STATION_STRUCTURE.ID],
+        station[STATION_STRUCTURE.ADDRESS]
+      );
     });
-    
   }
 
   return marker;
 }
 
-
-window.selectStation = (station,role,marker,type)=>{
+window.selectStation = (station, role, marker, type) => {
  const stationAddress = station[STATION_STRUCTURE.ADDRESS];
- const pinBackground = IconColor(station,type);
+  const pinBackground = IconColor(station, type);
 pinBackground.scale = 1.5;
 marker.content = pinBackground.element;
- if(role === 'start'){
+  if (role === "start") {
     startLocationInput.value = stationAddress;
-
- }else{
+    document.getElementById("selectBtnDestination").disabled = true;
+  } else {
     endLocationInput.value = stationAddress;
+    document.getElementById("selectBtnStart").disabled = true;
  }
-}
+};
 
-window.connect
+window.connect;
 
-window.generateOccupancy = async (station_id,station_address) => {
+window.generateOccupancy = async (station_id, station_address) => {
   try {
-    document.getElementById('occupancyTip').innerText = `Loading the occupancy charts for station No.${station_id}: ${station_address}...`;
+    document.getElementById(
+      "occupancyTip"
+    ).innerText = `Loading the occupancy charts for station No.${station_id}: ${station_address}...`;
     const response = await fetch(`/stations/${station_id}/availability`);
     if (!response.ok) {
       throw new Error("Failed to fetch data.");
@@ -427,16 +456,16 @@ window.generateOccupancy = async (station_id,station_address) => {
 
     const todayAvailablity = await getTodayAvailabiliy(availability);
     const dailyAvg = await calculateDailyBikeNumbers(availability);
-    const occupancyBtns = document.getElementsByClassName('occupancyBtn');
+    const occupancyBtns = document.getElementsByClassName("occupancyBtn");
     
     for (let i = 0; i < occupancyBtns.length; i++) {
       // Change the display style of each element
       //console.log(occupancyBtns[i]);
-      occupancyBtns[i].style.display = 'inline-block'; // This will hide the elements
+      occupancyBtns[i].style.display = "inline-block"; // This will hide the elements
   }
 
-    const occupancyTip = document.getElementById('occupancyTip');
-    occupancyTip.innerText = `You've selected station No.${station_id}: ${station_address}.`
+    const occupancyTip = document.getElementById("occupancyTip");
+    occupancyTip.innerText = `You are checking the occupancy of station No.${station_id}: ${station_address}.`;
 
     generateTodayBarChart(todayAvailablity, "todayChart");
     generateAvgBarChart(dailyAvg, "dailyAvgChart");
@@ -478,13 +507,13 @@ function generateTodayBarChart(data_input, barchartSection) {
     font: { size: 12.5 },
     barmode: "stack",
       // attempts below to change xticks/xtitle rotation etc.. further check
-      // autosize: true,
+      autosize: true,
       // width: 300,
       // height: 220,
       // xaxis: {title: None},
-      // xanchor: center,
-      // xref: 'container', 
-      // xaxis: {automargin: true},
+      xanchor: "free",
+      xref: "container",
+      xaxis: { automargin: true },
     };
 
     Plotly.react(barchartSection, data, layout);
@@ -629,6 +658,7 @@ window.resetLocationInputs = async function () {
  * @param {string} startLocString start location search string
  * @param {string} endLocString end location search string
  */
+
 window.goToLocation = async function (startLocString, endLocString) {
   if (startLocString?.length > 0 && endLocString?.length > 0) {
     const possibleStartLocations = await fetchLocation(startLocString);
@@ -650,17 +680,53 @@ window.goToLocation = async function (startLocString, endLocString) {
       const locationsNearStartLocation = getDistancesToLocation(
         startLocation.geometry.location.lat,
         startLocation.geometry.location.lng
-      ).slice(0, 3);
+      ).slice(0, 1);
+
+      const locationsNearStartLocationAll = getDistancesToLocation(
+        startLocation.geometry.location.lat,
+        startLocation.geometry.location.lng
+      );
+
+      console.log(
+        "All of the stations selected for the start location: ",
+        locationsNearStartLocationAll
+      );
+      console.log(
+        "the stations selected for the start location: ",
+        locationsNearStartLocation
+      );
+
       const locationsNearEndLocation = getDistancesToLocation(
         endLocation.geometry.location.lat,
         endLocation.geometry.location.lng
-      ).slice(0, 3);
+      ).slice(0, 1);
+
+      console.log(
+        "the stations selected for the start location: ",
+        locationsNearEndLocation
+      );
+      console.log(
+        "the stations selected for the end location: ",
+        locationsNearEndLocation
+      );
+
+      document.getElementById(
+        "selectedStationInfo"
+      ).innerHTML = `<p>We suggest you ride from <span style="font-weight: bold;">No.${
+        locationsNearStartLocation[0]["station"][STATION_STRUCTURE.ID] +
+        " " +
+        locationsNearStartLocation[0]["station"][STATION_STRUCTURE.ADDRESS]
+      } </span>
+      to <span style="font-weight: bold;">No.${
+        locationsNearEndLocation[0]["station"][STATION_STRUCTURE.ID] +
+        " " +
+        locationsNearEndLocation[0]["station"][STATION_STRUCTURE.ADDRESS]
+      }.</span></p>`;
       
       clearMarkers();
       if (!!directionsRenderer) {
         directionsRenderer.setMap(null);
       }
-      
 
       // const startMarker = await generateIcon(
       //   {
@@ -672,35 +738,45 @@ window.goToLocation = async function (startLocString, endLocString) {
       //   "start"
       // );
 
-      const startContent = document.createElement("div");
-      startContent.className = "endContent";
-      startContent.textContent = "Start";
+      // const startContent = document.createElement("div");
+      // startContent.className = "endContent";
+      // startContent.textContent = "Start";
 
-      startMarker = new AdvancedMarkerElement({
-        map,
-        position: {
-          lat: startLocation.geometry.location.lat,
-          lng: startLocation.geometry.location.lng,
-        },
-        content: startContent,
-      });
+      // startMarker = new AdvancedMarkerElement({
+      //   map,
+      //   position: {
+      //     lat: startLocation.geometry.location.lat,
+      //     lng: startLocation.geometry.location.lng,
+      //   },
+      //   content: startContent,
+      // });
 
-      currentMarkers.push(startMarker);
+      // currentMarkers.push(startMarker);
 
-      const endContent = document.createElement("div");
-      endContent.className = "endContent";
-      endContent.textContent = "Finish";
+      // const endMarker = await generateIcon(
+      //   {
+      //     [STATION_STRUCTURE.ID]: "endMarker",
+      //     [STATION_STRUCTURE.ADDRESS]: endLocation.name,
+      //     [STATION_STRUCTURE.LATITUDE]: endLocation.geometry.location.lat,
+      //     [STATION_STRUCTURE.LONGITUDE]: endLocation.geometry.location.lng,
+      //   },
+      //   "end"
+      // );
 
-      endMarker = new AdvancedMarkerElement({
-        map,
-        position: {
-          lat: endLocation.geometry.location.lat,
-          lng: endLocation.geometry.location.lng,
-        },
-        content: endContent,
-      });
+      // const endContent = document.createElement("div");
+      // endContent.className = "endContent";
+      // endContent.textContent = "Finish";
 
-      currentMarkers.push(endMarker);
+      // endMarker = new AdvancedMarkerElement({
+      //   map,
+      //   position: {
+      //     lat: endLocation.geometry.location.lat,
+      //     lng: endLocation.geometry.location.lng,
+      //   },
+      //   content: endContent,
+      // });
+
+      // currentMarkers.push(endMarker);
 
       //set the map center to the middle point of the start and end
       // map.setCenter({
@@ -708,7 +784,7 @@ window.goToLocation = async function (startLocString, endLocString) {
       //   lng: (endMarker.position.lng + startMarker.position.lng) / 2,
       // });
 
-      // map.setZoom(13);
+      //map.setZoom(13);
 
       locationsNearStartLocation.forEach(async (station) => {
         const marker = await generateIcon(station.station, "bike");
@@ -720,7 +796,21 @@ window.goToLocation = async function (startLocString, endLocString) {
         currentMarkers.push(marker);
       });
 
-      calculateAndDisplayRoute(locationsNearStartLocation[0], locationsNearEndLocation[0]);
+      calculateAndDisplayRoute(
+        locationsNearStartLocation[0],
+        locationsNearEndLocation[0]
+      );
+
+      // map.setCenter({
+      //   lat:
+      //     (locationsNearStartLocation[0][STATION_STRUCTURE.LATITUDE] +
+      //       locationsNearEndLocation[0][STATION_STRUCTURE.LATITUDE]) /
+      //     2,
+      //   lng:
+      //     (locationsNearStartLocation[0][STATION_STRUCTURE.LONGITUDE] +
+      //       locationsNearEndLocation[0][STATION_STRUCTURE.LONGITUDE]) /
+      //     2,
+      // });
     } else {
       // No location results!
       alert("Enter values before submit");
@@ -735,12 +825,12 @@ function setBoundsToStartEnd() {
   const startPosition = startMarker.position;
   const endPosition = endMarker.position;
 
-  bounds.extend( startPosition );
-  bounds.extend( endPosition );
-  currentMarkers.forEach(function(marker) {
+  bounds.extend(startPosition);
+  bounds.extend(endPosition);
+  currentMarkers.forEach(function (marker) {
     bounds.extend(marker.position);
   });
-  map.fitBounds( bounds );
+  map.fitBounds(bounds);
 }
 
 /**
@@ -788,6 +878,12 @@ function getDistance(lat1, lon1, lat2, lon2) {
  */
 function getDistancesToLocation(lat, long) {
   const distances = stations_json.map((station) => {
+    //if bike_num or bike stand === 0, return a very large number to make sure the station is not selected
+    if (station[STATION_STRUCTURE.BIKE_NUM !== 0]) {
+      console.log(
+        "Considering the bike num or bike stand number when getting the distances to location"
+      );
+    }
     return {
       station: station,
       // Get distance from given location to station location
@@ -815,7 +911,6 @@ async function fetchLocation(loc) {
     throw error;
   }
 }
-
 
 await getOverlayDate();
 await initWeather();
