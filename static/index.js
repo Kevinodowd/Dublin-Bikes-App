@@ -170,7 +170,7 @@ async function getOverlayDate() {
 
   const currentDate = `${day} ${month} ${year}`;
   const currentTime = `${hour}:${minute}`;
-  const overlayDate = `<p style="margin-block: 0em;">Today is ${currentDate}, Current time: ${currentTime} &nbsp;</p>`;
+  const overlayDate = `<p style="margin-block: 0em;">Today is ${currentDate} &nbsp &nbsp &nbsp &nbsp Current time: ${currentTime} &nbsp &nbsp &nbsp &nbsp;</p>`;
 
   const overlayInfo = document.getElementById("overlayInfo");
   overlayInfo.innerHTML = overlayDate;
