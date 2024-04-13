@@ -3,6 +3,7 @@ let map;
 let currentMarkers = [];
 let directionsRenderer;
 let startMarker, endMarker;
+let routeDistance;
 
 const { Map, InfoWindow } = await google.maps.importLibrary("maps");
 const { AdvancedMarkerElement, PinElement, AdvancedMarkerClickEvent } =
@@ -80,8 +81,7 @@ async function initMap(stations_json) {
     ///////////////////
     window.directionsService = new google.maps.DirectionsService();
     ///////////////////////
-  }
-  catch (error) {
+  } catch (error) {
     console.log(error);
   }
 }
@@ -103,9 +103,13 @@ function calculateAndDisplayRoute(startStation, endStation) {
       directionsRenderer = new google.maps.DirectionsRenderer({
         suppressMarkers: true,
         preserveViewport: true,
-        polylineOptions: { strokeColor: 'yellow' },
+        polylineOptions: { strokeColor: "yellow" },
       });
-      console.log(response.routes[0].legs[0].distance.text);
+
+      //unit:m
+      routeDistance = response.routes[0].legs[0].distance.value;
+      console.log(routeDistance);
+
       directionsRenderer.setMap(map);
       directionsRenderer.setDirections(response);
       setBoundsToStartEnd();
@@ -353,15 +357,16 @@ async function generateIcon(station, type) {
       }
 
       const infoWindowContent = `
-  <div class="infoWindowContainer" id="station-${station[STATION_STRUCTURE.ID]
-        }">
+  <div class="infoWindowContainer" id="station-${
+    station[STATION_STRUCTURE.ID]
+  }">
       <h3>No.${station[STATION_STRUCTURE.ID]} ${marker.title}</h3>
       <p>credit card accepted: ${cardAccepted}</p>
       <p>available bikes: ${station[STATION_STRUCTURE.BIKE_NUM]}</p>
       <p>available spaces: ${station[STATION_STRUCTURE.BIKE_STANDS]}</p>
   <p>last update at: ${timestampToDatetime(
-          station[STATION_STRUCTURE.LAST_UPDATE] * 1000
-        )}</p>
+    station[STATION_STRUCTURE.LAST_UPDATE] * 1000
+  )}</p>
       <button id="selectBtnStart" data-role="start">SELECT AS START</button>
       <button id="selectBtnDestination" data-role="destination">SELECT AS DESTINATION</button>
       </div>
@@ -402,7 +407,6 @@ async function generateIcon(station, type) {
             button.classList.add(role);
             console.log(button.classList);
           });
-
         });
 
         //selectBtns = [];
@@ -559,8 +563,6 @@ function generateAvgBarChart(dailyAvgData, barchartSection) {
   Plotly.react(barchartSection, data, layout);
 }
 
-async function generatePredictBarchart() { }
-
 async function getTodayAvailabiliy(data) {
   const ct = Date.now();
   const today = new Date();
@@ -670,55 +672,58 @@ window.goToLocation = async function (startLocString, endLocString) {
       // Take the first candidate as our location
       const startLocation = possibleStartLocations.candidates[0];
       const endLocation = possibleEndLocations.candidates[0];
+      let locationsNearStartLocation = null;
+      let locationsNearEndLocation = null;
 
       // Replace inputs with the real location names from api
       startLocationInput.value = startLocation.name;
       endLocationInput.value = endLocation.name;
 
       // Get sorted list of places with distances from the given location
-      const locationsNearStartLocation = getDistancesToLocation(
-        startLocation.geometry.location.lat,
-        startLocation.geometry.location.lng
-      ).slice(0, 1);
-
-      const locationsNearStartLocationAll = getDistancesToLocation(
+      const locationsNearStartLocations = getDistancesToLocation(
         startLocation.geometry.location.lat,
         startLocation.geometry.location.lng
       );
+      for (let i = 0; i < locationsNearStartLocations.length; i++) {
+        const station = locationsNearStartLocations[i];
+        if (station.hasBike !== 0) {
+          locationsNearStartLocation = station;
+          break;
+        }
+      }
 
-      console.log(
-        "All of the stations selected for the start location: ",
-        locationsNearStartLocationAll
-      );
-      console.log(
-        "the stations selected for the start location: ",
-        locationsNearStartLocation
-      );
-
-      const locationsNearEndLocation = getDistancesToLocation(
+      const locationsNearEndLocations = getDistancesToLocation(
         endLocation.geometry.location.lat,
         endLocation.geometry.location.lng
-      ).slice(0, 1);
+      );
+      for (let i = 0; i < locationsNearEndLocations.length; i++) {
+        const station = locationsNearEndLocations[i];
+        if (station.hasSpace !== 0) {
+          locationsNearEndLocation = station;
+          break;
+        }
+      }
 
       console.log(
-        "the stations selected for the start location: ",
-        locationsNearEndLocation
+        "locations near start locations:",
+        locationsNearStartLocations
       );
-      console.log(
-        "the stations selected for the end location: ",
-        locationsNearEndLocation
-      );
+      console.log("locations near end locations:", locationsNearEndLocations);
+
+      //console.log(locationsNearEndLocation, locationsNearStartLocation);
 
       document.getElementById(
         "selectedStationInfo"
-      ).innerHTML = `<p>We suggest you ride from <span style="font-weight: bold;">No.${locationsNearStartLocation[0]["station"][STATION_STRUCTURE.ID] +
-      " " +
-      locationsNearStartLocation[0]["station"][STATION_STRUCTURE.ADDRESS]
-      } </span>
-      to <span style="font-weight: bold;">No.${locationsNearEndLocation[0]["station"][STATION_STRUCTURE.ID] +
+      ).innerHTML = `<p>We suggest you ride from <span style="font-weight: bold;">No.${
+        locationsNearStartLocation["station"][STATION_STRUCTURE.ID] +
         " " +
-        locationsNearEndLocation[0]["station"][STATION_STRUCTURE.ADDRESS]
-        }.</span></p>`;
+        locationsNearStartLocation["station"][STATION_STRUCTURE.ADDRESS]
+      } </span>
+      to <span style="font-weight: bold;">No.${
+        locationsNearEndLocation["station"][STATION_STRUCTURE.ID] +
+        " " +
+        locationsNearEndLocation["station"][STATION_STRUCTURE.ADDRESS]
+      }.</span></p>`;
 
       clearMarkers();
       if (!!directionsRenderer) {
@@ -773,19 +778,21 @@ window.goToLocation = async function (startLocString, endLocString) {
 
       //map.setZoom(13);
 
-      locationsNearStartLocation.forEach(async (station) => {
-        const marker = await generateIcon(station.station, "bike");
-        currentMarkers.push(marker);
-      });
+      const startStationMarker = await generateIcon(
+        locationsNearStartLocation.station,
+        "bike"
+      );
+      currentMarkers.push(startStationMarker);
 
-      locationsNearEndLocation.forEach(async (station) => {
-        const marker = await generateIcon(station.station, "space");
-        currentMarkers.push(marker);
-      });
+      const endStationMarker = await generateIcon(
+        locationsNearEndLocation.station,
+        "bike"
+      );
+      currentMarkers.push(endStationMarker);
 
       calculateAndDisplayRoute(
-        locationsNearStartLocation[0],
-        locationsNearEndLocation[0]
+        locationsNearStartLocation,
+        locationsNearEndLocation
       );
 
       // map.setCenter({
@@ -848,9 +855,9 @@ function getDistance(lat1, lon1, lat2, lon2) {
   const a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
     Math.cos(deg2rad(lat1)) *
-    Math.cos(deg2rad(lat2)) *
-    Math.sin(dLon / 2) *
-    Math.sin(dLon / 2);
+      Math.cos(deg2rad(lat2)) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   const d = earthRadius * c; // Distance in km
   return d;
@@ -864,13 +871,57 @@ function getDistance(lat1, lon1, lat2, lon2) {
  * @returns a list of stations
  */
 function getDistancesToLocation(lat, long) {
+  const now = new Date();
   const distances = stations_json.map((station) => {
+    let hasBike = true;
+    let hasSpace = true;
+    const totalCapacity =
+      station[STATION_STRUCTURE.BIKE_NUM] +
+      station[STATION_STRUCTURE.BIKE_STANDS];
     //if bike_num or bike stand === 0, return a very large number to make sure the station is not selected
-    if (station[STATION_STRUCTURE.BIKE_NUM !== 0]) {
-      console.log(
-        "Considering the bike num or bike stand number when getting the distances to location"
-      );
+    if (station[STATION_STRUCTURE.BIKE_NUM] === 0) {
+      hasBike = false;
     }
+
+    const stationPrediction =
+      predictions[`station_${station[STATION_STRUCTURE.ID]}`]; // Change to whatever station you need
+    //console.log(stationPrediction);
+    if (stationPrediction) {
+      //get the time string in the prediction json to date format in js
+      const times = Object.keys(stationPrediction).map(
+        (time) => new Date(time)
+      );
+
+      // Function to find the closest time
+      const getClosestTime = (desiredTime, times) => {
+        return times.reduce((prev, curr) =>
+          Math.abs(curr - desiredTime) < Math.abs(prev - desiredTime)
+            ? curr
+            : prev
+        );
+
+        //for a beginner, the average speed is 12 miles per hour, which is around 19 km per hour
+
+        //how many minutes
+        const timeToArrive = (routeDistance / 19) * 1000 * 60;
+
+        const arrivalTime = new Date(now.getTime() + timeToArrive * 60000);
+        const closestTime = getClosestTime(arrivalTime, times);
+        console.log(
+          "the closest time in prediction range from now is:",
+          closestTime
+        );
+
+        const predicted_bikeSpace = math.floor(
+          totalCapacity - stationPrediction[closestTime]
+        );
+        if (predicted_bikeSpace === 0) {
+          hasSpace = false;
+        }
+      };
+    }
+    // Convert the object keys (timestamp strings) to an array of Date objects
+
     return {
       station: station,
       // Get distance from given location to station location
@@ -880,6 +931,8 @@ function getDistancesToLocation(lat, long) {
         station[STATION_STRUCTURE.LATITUDE],
         station[STATION_STRUCTURE.LONGITUDE]
       ),
+      hasBike,
+      hasSpace,
     };
   });
   // Smallest to largest
@@ -899,6 +952,21 @@ async function fetchLocation(loc) {
   }
 }
 
+async function getPrediction() {
+  try {
+    const response = await fetch("/predict");
+    if (!response.ok) {
+      throw new Error("Failed to get the predictions.");
+    }
+    return await response.json();
+  } catch (error) {
+    console.log("error:", error);
+    throw error;
+  }
+}
+
 await getOverlayDate();
 await initWeather();
 await initMap(stations_json);
+const predictions = await getPrediction();
+console.log(predictions);

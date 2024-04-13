@@ -3,6 +3,7 @@ import pandas as pd
 from scraper import sqlEngine
 import pickle
 import numpy as np
+from time import time
 def get_model_predict():
     def get_stationId():
         sqlCommand = f'SELECT stationId FROM stations;'
@@ -37,40 +38,42 @@ def get_model_predict():
 
     def predict(X_train,models):
         #test whether if the predictWeather table is shut down, will it block other features working?
-        # if X_train is None:
-        #     return jsonify({"error": "X_train data not loaded"}), 500
+
         predictions = {}
-        try:
-            forecastTime = X_train['forecastTime']
-            X_train = X_train.drop(['forecastTime'],axis=1)
-            X_train_columns = X_train.columns
+        while True:
+            try:
+                forecastTime = [str(x) for x in pd.to_datetime(X_train['forecastTime'],unit='s')]
+                X_train = X_train.drop(['forecastTime'],axis=1)
+                X_train_columns = X_train.columns
 
-            for station, model in models.items():
-                if model:
-                    try:
-                        required_columns = model.feature_names_in_
-                        complete_x = pd.DataFrame(columns=required_columns)
-                        for col in required_columns:
-                            if col in X_train_columns:
-                                complete_x[col] = X_train[col]
-                            else:
-                                complete_x[col] = False
+                for station, model in models.items():
+                    if model:
+                        try:
+                            required_columns = model.feature_names_in_
+                            complete_x = pd.DataFrame(columns=required_columns)
+                            for col in required_columns:
+                                if col in X_train_columns:
+                                    complete_x[col] = X_train[col]
+                                else:
+                                    complete_x[col] = False
 
-                        x_array = np.array(complete_x)
-                        # print(model.coef_)
-                        results = model.predict(x_array)
+                            x_array = np.array(complete_x)
+                            # print(model.coef_)
+                            results = model.predict(x_array)
 
 
-                        predictions[station] = {forecastTime[0]:results[0],forecastTime[1]:results[1],forecastTime[2]:results[2]}
+                            predictions[f'station_{station}'] = {forecastTime[0]:results[0],forecastTime[1]:results[1],forecastTime[2]:results[2]}
 
-                    except Exception as e:
-                        predictions[station] = None
-                else:
-                    predictions[station] = None
+                        except Exception as e:
+                            predictions[f'station_{station}'] = None
+                    else:
+                        predictions[f'station_{station}'] = None
 
-            # return jsonify(predictions)
-        except Exception as e:
-            print(e)
+                break
+                # return jsonify(predictions)
+            except Exception as e:
+                print(e)
+                time.sleep(10)
 
         return predictions
 
@@ -81,6 +84,10 @@ def get_model_predict():
         models[s] = load_model(s)
 
     predictions = predict(X_train,models)
+    # predictions = pd.DataFrame(predictions)
+    # predictions.index = pd.to_datetime(predictions.index,unit='s')
 
     return predictions
+#
 
+# p = get_model_predict()

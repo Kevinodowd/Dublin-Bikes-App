@@ -4,6 +4,7 @@ import pandas as pd
 import requests
 from config import *
 from jinja2 import TemplateNotFound
+from model_training import get_model_predict
 
 
 app = Flask(__name__, static_url_path='')
@@ -92,9 +93,17 @@ def searchLocation(loc):
     return r.json()
 
 
-@app.route('/modeltraining/<int:station_id>')
-def model_traning(station_id):
-    pass
+@app.route('/predict')
+def get_predict():
+    try:
+        prediction = get_model_predict()
+        
+        if not prediction:
+                return jsonify({"error": "No predictions."}), 404
+        
+        return jsonify(prediction)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 if __name__ == '__main__':

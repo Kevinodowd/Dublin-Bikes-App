@@ -32,6 +32,8 @@ def generate_mysqlEnginerds(db=None):
         engine = create_engine(f"mysql://{USER}:{PASSWORD}@{URI}:{PORT}/{DB}",echo=True)
     return engine
 
+
+
 def connect_to_rds(query):
     mypkey = paramiko.RSAKey.from_private_key_file(private_key_path)
     # if you want to use ssh password use - ssh_password='your ssh password', bellow
@@ -57,6 +59,6 @@ def connect_to_rds(query):
         sqlCommand = query
         cursor.execute(sqlCommand)
         data_json = cursor.fetchall()
-        print('Successful')
+        #print('Successful')
         conn.close()
         return json.dumps(data_json)
