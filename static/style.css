@@ -94,13 +94,22 @@ body {
   pointer-events: none;
 }
 
+#bikeLogo {
+  height: 6vh;
+}
+
 #overlayInfo {
-  height: 6vh; /* Smaller height */
-  background-color: #2d2c2c; /* Transparent white */
-  color: white;
   display: flex;
   justify-content: center;
   align-items: center;
+  color: white;
+  width: 100%;
+}
+
+#infoHeader {
+  display: flex;
+  height: 6vh; /* Smaller height */
+  background-color: #2d2c2c; /* Transparent white */
 }
 
 #leftbar {
