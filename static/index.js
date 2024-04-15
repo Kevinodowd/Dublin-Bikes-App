@@ -19,6 +19,8 @@ const bikeBtn = document.getElementById("availableBikes");
 const spaceBtn = document.getElementById("availableSpaces");
 const startLocationInput = document.getElementById("startLoc");
 const endLocationInput = document.getElementById("endLoc");
+const resetBtn = document.getElementById("resetBtn");
+const submitBtn = document.getElementById("submitBtn");
 
 const STATION_STRUCTURE = {
   ID: 0,
@@ -76,6 +78,12 @@ async function initMap(stations_json) {
         const marker = await generateIcon(station, "bike");
         currentMarkers.push(marker);
       });
+      submitBtn.disabled = false;
+      submitBtn.classList.remove("disabled");
+      resetBtn.disabled = false;
+      resetBtn.classList.remove("disabled");
+      spaceBtn.disabled = false;
+      spaceBtn.classList.remove("disabled");
       tileLoadedListener.remove();
     });
 
@@ -652,7 +660,9 @@ window.resetLocationInputs = async function () {
     const marker = await generateIcon(station, "bike");
     currentMarkers.push(marker);
   });
-  directionsRenderer.setMap(null);
+  if (directionsRenderer) {
+    directionsRenderer.setMap(null);
+  }
 };
 
 /**
