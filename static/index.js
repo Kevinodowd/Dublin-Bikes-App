@@ -70,11 +70,13 @@ async function initMap(stations_json) {
       mapId: "ca9c8053cd850a9c",
     });
     console.log("generate a map.");
-
-    // Add markers to current markers list. Async in order to add the marker, not the promise for each
-    stations_json.forEach(async (station) => {
-      const marker = await generateIcon(station, "bike");
-      currentMarkers.push(marker);
+    const tileLoadedListener = map.addListener("tilesloaded", () => {
+      // Add markers to current markers list. Async in order to add the marker, not the promise for each
+      stations_json.forEach(async (station) => {
+        const marker = await generateIcon(station, "bike");
+        currentMarkers.push(marker);
+      });
+      tileLoadedListener.remove();
     });
 
     console.log("generate stations.");
