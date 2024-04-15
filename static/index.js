@@ -4,6 +4,8 @@ let currentMarkers = [];
 let directionsRenderer;
 let startMarker, endMarker;
 let routeDistance;
+let selectedStart;
+let selectedEnd;
 
 const { Map, InfoWindow } = await google.maps.importLibrary("maps");
 const { AdvancedMarkerElement, PinElement, AdvancedMarkerClickEvent } =
@@ -448,9 +450,11 @@ window.selectStation = (station, role, marker, type) => {
   if (role === "start") {
     startLocationInput.value = stationAddress;
     document.getElementById("selectBtnDestination").disabled = true;
+    selectedStart = station;
   } else {
     endLocationInput.value = stationAddress;
     document.getElementById("selectBtnStart").disabled = true;
+    selectedEnd = station;
   }
 };
 
@@ -655,6 +659,8 @@ dailyAvgChartBtn.addEventListener("click", () => {
 window.resetLocationInputs = async function () {
   startLocationInput.value = "";
   endLocationInput.value = "";
+  selectedStart = null;
+  selectedEnd = null;
   clearMarkers();
   stations_json.forEach(async (station) => {
     const marker = await generateIcon(station, "bike");
@@ -673,158 +679,198 @@ window.resetLocationInputs = async function () {
  */
 
 window.goToLocation = async function (startLocString, endLocString) {
-  if (startLocString?.length > 0 && endLocString?.length > 0) {
+  // 1. Get start location either from the one set by button or the search string
+  let startLocation = null;
+  let endLocation = null;
+  let nearestStartLocationWithBike = null;
+  let nearestEndLocationWithSpace = null;
+
+  if (selectedStart) { // We have selected the start location from a station's info popup
+    startLocation = {
+      name: selectedStart[STATION_STRUCTURE.ADDRESS],
+      geometry: {
+        location: {
+          lat: selectedStart[STATION_STRUCTURE.LATITUDE],
+          lng: selectedStart[STATION_STRUCTURE.LONGITUDE]
+        }
+      }
+    };
+    nearestStartLocationWithBike = {station: selectedStart};
+  }
+  
+  if (startLocString?.length > 0 && (!selectedStart || startLocation.name !== startLocString)) {
     const possibleStartLocations = await fetchLocation(startLocString);
-    const possibleEndLocations = await fetchLocation(endLocString);
-
-    if (
-      possibleStartLocations?.candidates?.length > 0 &&
-      possibleEndLocations?.candidates?.length > 0
-    ) {
-      // Take the first candidate as our location
-      const startLocation = possibleStartLocations.candidates[0];
-      const endLocation = possibleEndLocations.candidates[0];
-      let locationsNearStartLocation = null;
-      let locationsNearEndLocation = null;
-
-      // Replace inputs with the real location names from api
-      startLocationInput.value = startLocation.name;
-      endLocationInput.value = endLocation.name;
-
+    if (possibleStartLocations?.candidates?.length > 0) {
+      startLocation = possibleStartLocations.candidates[0];
       // Get sorted list of places with distances from the given location
-      const locationsNearStartLocations = getDistancesToLocation(
+      const locationsNearStartLocation = getDistancesToLocation(
         startLocation.geometry.location.lat,
         startLocation.geometry.location.lng
       );
-      for (let i = 0; i < locationsNearStartLocations.length; i++) {
-        const station = locationsNearStartLocations[i];
+      for (let i = 0; i < locationsNearStartLocation.length; i++) {
+        const station = locationsNearStartLocation[i];
         if (station.hasBike !== 0) {
-          locationsNearStartLocation = station;
-          break;
-        }
-      }
-
-      const locationsNearEndLocations = getDistancesToLocation(
-        endLocation.geometry.location.lat,
-        endLocation.geometry.location.lng
-      );
-      for (let i = 0; i < locationsNearEndLocations.length; i++) {
-        const station = locationsNearEndLocations[i];
-        if (station.hasSpace !== 0) {
-          locationsNearEndLocation = station;
+          nearestStartLocationWithBike = station;
           break;
         }
       }
 
       console.log(
         "locations near start locations:",
-        locationsNearStartLocations
+        locationsNearStartLocation
       );
-      console.log("locations near end locations:", locationsNearEndLocations);
-
-      //console.log(locationsNearEndLocation, locationsNearStartLocation);
-
-      document.getElementById(
-        "selectedStationInfo"
-      ).innerHTML = `<p>We suggest you ride from <span style="font-weight: bold;">No.${
-        locationsNearStartLocation["station"][STATION_STRUCTURE.ID] +
-        " " +
-        locationsNearStartLocation["station"][STATION_STRUCTURE.ADDRESS]
-      } </span>
-      to <span style="font-weight: bold;">No.${
-        locationsNearEndLocation["station"][STATION_STRUCTURE.ID] +
-        " " +
-        locationsNearEndLocation["station"][STATION_STRUCTURE.ADDRESS]
-      }.</span></p>`;
-
-      clearMarkers();
-      if (!!directionsRenderer) {
-        directionsRenderer.setMap(null);
-      }
-
-      // const startMarker = await generateIcon(
-      //   {
-      //     [STATION_STRUCTURE.ID]: "startMarker",
-      //     [STATION_STRUCTURE.ADDRESS]: startLocation.name,
-      //     [STATION_STRUCTURE.LATITUDE]: startLocation.geometry.location.lat,
-      //     [STATION_STRUCTURE.LONGITUDE]: startLocation.geometry.location.lng,
-      //   },
-      //   "start"
-      // );
-
-      const startContent = document.createElement("div");
-      startContent.className = "endContent";
-      startContent.textContent = "Start";
-
-      startMarker = new AdvancedMarkerElement({
-        map,
-        position: {
-          lat: startLocation.geometry.location.lat,
-          lng: startLocation.geometry.location.lng,
-        },
-        content: startContent,
-      });
-
-      currentMarkers.push(startMarker);
-
-      const endContent = document.createElement("div");
-      endContent.className = "endContent";
-      endContent.textContent = "Finish";
-
-      endMarker = new AdvancedMarkerElement({
-        map,
-        position: {
-          lat: endLocation.geometry.location.lat,
-          lng: endLocation.geometry.location.lng,
-        },
-        content: endContent,
-      });
-
-      currentMarkers.push(endMarker);
-
-      //set the map center to the middle point of the start and end
-      // map.setCenter({
-      //   lat: (endMarker.position.lat + startMarker.position.lat) / 2,
-      //   lng: (endMarker.position.lng + startMarker.position.lng) / 2,
-      // });
-
-      //map.setZoom(13);
-
-      const startStationMarker = await generateIcon(
-        locationsNearStartLocation.station,
-        "bike"
-      );
-      currentMarkers.push(startStationMarker);
-
-      const endStationMarker = await generateIcon(
-        locationsNearEndLocation.station,
-        "bike"
-      );
-      currentMarkers.push(endStationMarker);
-
-      calculateAndDisplayRoute(
-        locationsNearStartLocation,
-        locationsNearEndLocation
-      );
-
-      // map.setCenter({
-      //   lat:
-      //     (locationsNearStartLocation[0][STATION_STRUCTURE.LATITUDE] +
-      //       locationsNearEndLocation[0][STATION_STRUCTURE.LATITUDE]) /
-      //     2,
-      //   lng:
-      //     (locationsNearStartLocation[0][STATION_STRUCTURE.LONGITUDE] +
-      //       locationsNearEndLocation[0][STATION_STRUCTURE.LONGITUDE]) /
-      //     2,
-      // });
     } else {
-      // No location results!
       alert("Enter values before submit");
     }
+  }
+
+  if (selectedEnd) { // We have selected the end location from a station's info popup
+    endLocation = {
+      name: selectedEnd[STATION_STRUCTURE.ADDRESS],
+      geometry: {
+        location: {
+          lat: selectedEnd[STATION_STRUCTURE.LATITUDE],
+          lng: selectedEnd[STATION_STRUCTURE.LONGITUDE]
+        }
+      }
+    };
+    nearestEndLocationWithSpace = {station: selectedEnd};
+  }
+  
+  if (endLocString?.length > 0 && (!selectedEnd || endLocation.name !== endLocString)) {
+    const possibleEndLocations = await fetchLocation(endLocString);
+    if (possibleEndLocations?.candidates?.length > 0) {
+      endLocation = possibleEndLocations.candidates[0];
+      // Get sorted list of places with distances from the given location
+      const locationsNearEndLocation = getDistancesToLocation(
+        endLocation.geometry.location.lat,
+        endLocation.geometry.location.lng
+      );
+      for (let i = 0; i < locationsNearEndLocation.length; i++) {
+        const station = locationsNearEndLocation[i];
+        if (station.hasSpace !== 0) {
+          nearestEndLocationWithSpace = station;
+          break;
+        }
+      }
+
+      console.log("locations near end locations:", locationsNearEndLocation);
+    } else {
+      alert("Enter values before submit");
+    }
+  }
+
+  if (nearestStartLocationWithBike && nearestEndLocationWithSpace) {
+
+    // Replace inputs with the real location names from api
+    startLocationInput.value = startLocation.name;
+    endLocationInput.value = endLocation.name;
+
+    document.getElementById(
+      "selectedStationInfo"
+    ).innerHTML = `<p>We suggest you ride from <span style="font-weight: bold;">No.${
+      nearestStartLocationWithBike["station"][STATION_STRUCTURE.ID] +
+      " " +
+      nearestStartLocationWithBike["station"][STATION_STRUCTURE.ADDRESS]
+    } </span>
+    to <span style="font-weight: bold;">No.${
+      nearestEndLocationWithSpace["station"][STATION_STRUCTURE.ID] +
+      " " +
+      nearestEndLocationWithSpace["station"][STATION_STRUCTURE.ADDRESS]
+    }.</span></p>`;
+
+    clearMarkers();
+    if (!!directionsRenderer) {
+      directionsRenderer.setMap(null);
+    }
+
+    // const startMarker = await generateIcon(
+    //   {
+    //     [STATION_STRUCTURE.ID]: "startMarker",
+    //     [STATION_STRUCTURE.ADDRESS]: startLocation.name,
+    //     [STATION_STRUCTURE.LATITUDE]: startLocation.geometry.location.lat,
+    //     [STATION_STRUCTURE.LONGITUDE]: startLocation.geometry.location.lng,
+    //   },
+    //   "start"
+    // );
+
+    await addStartAndEndMarkers(startLocation, endLocation);
+
+    //set the map center to the middle point of the start and end
+    // map.setCenter({
+    //   lat: (endMarker.position.lat + startMarker.position.lat) / 2,
+    //   lng: (endMarker.position.lng + startMarker.position.lng) / 2,
+    // });
+
+    //map.setZoom(13);
+
+    await addStartAndEndStationMarkers(nearestStartLocationWithBike, nearestEndLocationWithSpace);
+
+    calculateAndDisplayRoute(
+      nearestStartLocationWithBike,
+      nearestEndLocationWithSpace
+    );
+
+    // map.setCenter({
+    //   lat:
+    //     (locationsNearStartLocation[0][STATION_STRUCTURE.LATITUDE] +
+    //       locationsNearEndLocation[0][STATION_STRUCTURE.LATITUDE]) /
+    //     2,
+    //   lng:
+    //     (locationsNearStartLocation[0][STATION_STRUCTURE.LONGITUDE] +
+    //       locationsNearEndLocation[0][STATION_STRUCTURE.LONGITUDE]) /
+    //     2,
+    // });
   } else {
     alert("Enter values before submit");
   }
 };
+
+async function addStartAndEndMarkers(startLocation, endLocation) {
+  const startContent = document.createElement("div");
+  startContent.className = "endContent";
+  startContent.textContent = "Start";
+
+  startMarker = new AdvancedMarkerElement({
+    map,
+    position: {
+      lat: startLocation.geometry.location.lat,
+      lng: startLocation.geometry.location.lng,
+    },
+    content: startContent,
+  });
+
+  currentMarkers.push(startMarker);
+
+  const endContent = document.createElement("div");
+  endContent.className = "endContent";
+  endContent.textContent = "Finish";
+
+  endMarker = new AdvancedMarkerElement({
+    map,
+    position: {
+      lat: endLocation.geometry.location.lat,
+      lng: endLocation.geometry.location.lng,
+    },
+    content: endContent,
+  });
+
+  currentMarkers.push(endMarker);
+}
+
+async function addStartAndEndStationMarkers(start, end) {
+  const startStationMarker = await generateIcon(
+    start.station,
+    "bike"
+  );
+  currentMarkers.push(startStationMarker);
+
+  const endStationMarker = await generateIcon(
+    end.station,
+    "bike"
+  );
+  currentMarkers.push(endStationMarker);
+}
 
 function setBoundsToStartEnd() {
   const bounds = new google.maps.LatLngBounds();
