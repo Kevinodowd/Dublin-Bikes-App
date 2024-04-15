@@ -162,7 +162,7 @@ def weatherForecast_to_db(weather,connection,ft):
     pressure = weather.get("main",{}).get("pressure",None)
     temp = weather.get("main",{}).get("temp",None)
 
-    stmt = f"""INSERT INTO weatherForecast(stationId,weather,description,icon,t>
+    stmt = f"""INSERT INTO weatherForecast(stationId,weather,description,icon,temperature,pressure,humidity,visibility,windSpeed,
     windDeg,fetchTime,forecastTime)
     VALUES(1,"{weather['weather'][0]['main']}",
     "{weather["weather"][0]["description"]}","{icon}",{temp},{pressure},
