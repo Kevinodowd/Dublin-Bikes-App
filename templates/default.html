@@ -1,6 +1,6 @@
 <html>
   <head>
-    <title>Simple Map</title>
+    <title>Dublin Bikes</title>
     <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 
@@ -85,7 +85,11 @@
 
     <div id="map-container">
       <div id="infoHeader">
-        <img id="bikeLogo" src="{{url_for('static',filename='media/logo_with_name.png')}}" alt="Bike logo" />
+        <img
+          id="bikeLogo"
+          src="{{url_for('static',filename='media/logo_with_name.png')}}"
+          alt="Bike logo"
+        />
         <div id="overlayInfo">Loading the current weather ...</div>
       </div>
       <div id="buttonContainer">
