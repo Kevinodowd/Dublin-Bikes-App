@@ -16,8 +16,9 @@ def get_model_predict():
 
     #Cleamimg the forecast data making predictions and providing a route for it
     def clean_data():
-        sqlCommand = f'SELECT * FROM weatherForecast LIMIT 3;'
+        sqlCommand = f'SELECT * FROM weatherForecast;'
         data = json.loads(sqlEngine.connect_to_rds(sqlCommand))
+        #print(data)
         #complete_columns = list(pd.read_csv('cleaned_data_sample.csv').iloc[:,0])
 
         data = pd.DataFrame(data)
@@ -44,6 +45,7 @@ def get_model_predict():
             try:
                 forecastTime = [str(x) for x in pd.to_datetime(X_train['forecastTime'],unit='s')]
                 X_train = X_train.drop(['forecastTime'],axis=1)
+                #print(X_train)
                 X_train_columns = X_train.columns
 
                 for station, model in models.items():
@@ -62,7 +64,7 @@ def get_model_predict():
                             results = model.predict(x_array)
 
 
-                            predictions[f'station_{station}'] = {forecastTime[0]:results[0],forecastTime[1]:results[1],forecastTime[2]:results[2]}
+                            predictions[f'station_{station}'] = {forecastTime[i]: results[i] for i in range(len(forecastTime))}
 
                         except Exception as e:
                             predictions[f'station_{station}'] = None
@@ -90,4 +92,3 @@ def get_model_predict():
     return predictions
 #
 
-# p = get_model_predict()

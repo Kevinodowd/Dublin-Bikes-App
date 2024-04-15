@@ -4,6 +4,10 @@ let currentMarkers = [];
 let directionsRenderer;
 let startMarker, endMarker;
 let routeDistance;
+
+const returnTimeInput = document.getElementById("returnTime");
+const startTimeInput = document.getElementById("startTime");
+const currentTime = new Date();
 let selectedStart;
 let selectedEnd;
 
@@ -62,9 +66,6 @@ spaceBtn.addEventListener("click", () => {
 
 async function initMap(stations_json) {
   try {
-    // const stations_json =
-    //console.log(stations_json);
-
     //set the position to dublin
     const position = { lat: 53.3498, lng: -6.2603 };
 
@@ -129,25 +130,6 @@ function calculateAndDisplayRoute(startStation, endStation) {
     .catch((e) => console.log("Directions could not be displayed."));
 }
 
-// async function routeForStationsIcon() {
-//   startStation = document.querySelector(".start");
-//   endStation = document.querySelector(".destination");
-//   console.log(startStation, endLocation);
-//   // directionsService
-//   //   .route({
-//   //     origin: {lat: startStation.station[STATION_STRUCTURE.LATITUDE], lng: startStation.station[STATION_STRUCTURE.LONGITUDE]},
-//   //     destination: {lat: endStation.station[STATION_STRUCTURE.LATITUDE], lng: endStation.station[STATION_STRUCTURE.LONGITUDE]},
-//   //     travelMode: google.maps.TravelMode.BICYCLING,
-//   //   })
-//   //   .then((response) => {
-//   //     directionsRenderer = new google.maps.DirectionsRenderer();
-//   //     console.log(response.routes[0].legs[0].distance.text)
-//   //     directionsRenderer.setMap(map);
-//   //     directionsRenderer.setDirections(response);
-//   //   })
-//   //   .catch((e) => console.log("Directions could not be displayed."));
-// }
-
 function timestampToDatetime(timestamp) {
   const date = new Date(timestamp);
   const year = date.getFullYear();
@@ -162,14 +144,6 @@ function timestampToDatetime(timestamp) {
 
   return formattedDate;
 }
-
-//initialise the current time
-// async function initCurrentTime() {
-//   const ct = Date.now();
-//   console.log(ct);
-//   const ctSpan = document.getElementById("currentTime");
-//   ctSpan.innerText += " " + timestampToDatetime(ct);
-// }
 
 async function getOverlayDate() {
   function formatNumberToString(numberToFormat) {
@@ -685,20 +659,24 @@ window.goToLocation = async function (startLocString, endLocString) {
   let nearestStartLocationWithBike = null;
   let nearestEndLocationWithSpace = null;
 
-  if (selectedStart) { // We have selected the start location from a station's info popup
+  if (selectedStart) {
+    // We have selected the start location from a station's info popup
     startLocation = {
       name: selectedStart[STATION_STRUCTURE.ADDRESS],
       geometry: {
         location: {
           lat: selectedStart[STATION_STRUCTURE.LATITUDE],
-          lng: selectedStart[STATION_STRUCTURE.LONGITUDE]
-        }
-      }
+          lng: selectedStart[STATION_STRUCTURE.LONGITUDE],
+        },
+      },
     };
-    nearestStartLocationWithBike = {station: selectedStart};
+    nearestStartLocationWithBike = { station: selectedStart };
   }
-  
-  if (startLocString?.length > 0 && (!selectedStart || startLocation.name !== startLocString)) {
+
+  if (
+    startLocString?.length > 0 &&
+    (!selectedStart || startLocation.name !== startLocString)
+  ) {
     const possibleStartLocations = await fetchLocation(startLocString);
     if (possibleStartLocations?.candidates?.length > 0) {
       startLocation = possibleStartLocations.candidates[0];
@@ -707,8 +685,8 @@ window.goToLocation = async function (startLocString, endLocString) {
         startLocation.geometry.location.lat,
         startLocation.geometry.location.lng
       );
-      for (let i = 0; i < locationsNearStartLocation.length; i++) {
-        const station = locationsNearStartLocation[i];
+      for (let i = 0; i < locationsNearStartLocations.length; i++) {
+        const station = locationsNearStartLocations[i];
         if (station.hasBike !== 0) {
           nearestStartLocationWithBike = station;
           break;
@@ -724,20 +702,24 @@ window.goToLocation = async function (startLocString, endLocString) {
     }
   }
 
-  if (selectedEnd) { // We have selected the end location from a station's info popup
+  if (selectedEnd) {
+    // We have selected the end location from a station's info popup
     endLocation = {
       name: selectedEnd[STATION_STRUCTURE.ADDRESS],
       geometry: {
         location: {
           lat: selectedEnd[STATION_STRUCTURE.LATITUDE],
-          lng: selectedEnd[STATION_STRUCTURE.LONGITUDE]
-        }
-      }
+          lng: selectedEnd[STATION_STRUCTURE.LONGITUDE],
+        },
+      },
     };
-    nearestEndLocationWithSpace = {station: selectedEnd};
+    nearestEndLocationWithSpace = { station: selectedEnd };
   }
-  
-  if (endLocString?.length > 0 && (!selectedEnd || endLocation.name !== endLocString)) {
+
+  if (
+    endLocString?.length > 0 &&
+    (!selectedEnd || endLocation.name !== endLocString)
+  ) {
     const possibleEndLocations = await fetchLocation(endLocString);
     if (possibleEndLocations?.candidates?.length > 0) {
       endLocation = possibleEndLocations.candidates[0];
@@ -761,7 +743,6 @@ window.goToLocation = async function (startLocString, endLocString) {
   }
 
   if (nearestStartLocationWithBike && nearestEndLocationWithSpace) {
-
     // Replace inputs with the real location names from api
     startLocationInput.value = startLocation.name;
     endLocationInput.value = endLocation.name;
@@ -804,7 +785,10 @@ window.goToLocation = async function (startLocString, endLocString) {
 
     //map.setZoom(13);
 
-    await addStartAndEndStationMarkers(nearestStartLocationWithBike, nearestEndLocationWithSpace);
+    await addStartAndEndStationMarkers(
+      nearestStartLocationWithBike,
+      nearestEndLocationWithSpace
+    );
 
     calculateAndDisplayRoute(
       nearestStartLocationWithBike,
@@ -859,16 +843,10 @@ async function addStartAndEndMarkers(startLocation, endLocation) {
 }
 
 async function addStartAndEndStationMarkers(start, end) {
-  const startStationMarker = await generateIcon(
-    start.station,
-    "bike"
-  );
+  const startStationMarker = await generateIcon(start.station, "bike");
   currentMarkers.push(startStationMarker);
 
-  const endStationMarker = await generateIcon(
-    end.station,
-    "bike"
-  );
+  const endStationMarker = await generateIcon(end.station, "bike");
   currentMarkers.push(endStationMarker);
 }
 
@@ -930,71 +908,100 @@ function getDistance(lat1, lon1, lat2, lon2) {
  */
 function getDistancesToLocation(lat, long) {
   const now = new Date();
-  const distances = stations_json.map((station) => {
-    let hasBike = true;
-    let hasSpace = true;
-    const totalCapacity =
-      station[STATION_STRUCTURE.BIKE_NUM] +
-      station[STATION_STRUCTURE.BIKE_STANDS];
-    //if bike_num or bike stand === 0, return a very large number to make sure the station is not selected
-    if (station[STATION_STRUCTURE.BIKE_NUM] === 0) {
-      hasBike = false;
-    }
+  const startTime = new Date(startTimeInput.value);
+  const returnTime = new Date(returnTimeInput.value);
+  let arrivalTime;
+  let submitOrNot = true;
+  if (startTime > lastTime || startTime < currentTime.setSeconds(0)) {
+    alert(`You start time should be between ${currentTime} and ${lastTime}`);
+    submitOrNot = false;
+  }
+  if (returnTime == "") {
+    const timeToArrive = (routeDistance / 19) * 1000 * 60;
+    arrivalTime = new Date(now.getTime() + timeToArrive * 60000);
+  } else if (returnTime > lastTime) {
+    submitOrNot = false;
+    alert(
+      `Sorry, we cannot predict ${returnTime}'s data. Your return time should be no later than ${lastTime}.`
+    );
+  } else if (returnTime < startTime) {
+    submitOrNot = false;
+    //console.log("startTime: ", startTime, " returnTime: ", returnTime);
+    alert("Your return Time is earlier than start time!");
+  } else {
+    arrivalTime = returnTime;
+  }
 
-    const stationPrediction =
-      predictions[`station_${station[STATION_STRUCTURE.ID]}`]; // Change to whatever station you need
-    //console.log(stationPrediction);
-    if (stationPrediction) {
-      //get the time string in the prediction json to date format in js
-      const times = Object.keys(stationPrediction).map(
-        (time) => new Date(time)
-      );
+  if (submitOrNot) {
+    const distances = stations_json.map((station) => {
+      let hasBike = true;
+      let hasSpace = true;
+      const totalCapacity =
+        station[STATION_STRUCTURE.BIKE_NUM] +
+        station[STATION_STRUCTURE.BIKE_STANDS];
 
-      // Function to find the closest time
-      const getClosestTime = (desiredTime, times) => {
-        return times.reduce((prev, curr) =>
-          Math.abs(curr - desiredTime) < Math.abs(prev - desiredTime)
-            ? curr
-            : prev
+      const stationPrediction =
+        predictions[`station_${station[STATION_STRUCTURE.ID]}`];
+
+      if (stationPrediction) {
+        //get the time string in the prediction json to date format in js
+        let times = Object.keys(stationPrediction).map(
+          (time) => new Date(time)
         );
 
+        times.unshift(now);
+        // Function to find the closest time
+        const getClosestTime = (desiredTime, times) => {
+          return times.reduce((prev, curr) =>
+            desiredTime < prev && desiredTime > curr ? curr : prev
+          );
+        };
         //for a beginner, the average speed is 12 miles per hour, which is around 19 km per hour
-
         //how many minutes
-        const timeToArrive = (routeDistance / 19) * 1000 * 60;
+        const closestTimeForReturn = getClosestTime(arrivalTime, times);
+        const closestTimeForStart = getClosestTime(startTime, times);
+        console.log("closestTimeForReturn: ", closestTimeForReturn);
+        console.log("closestTimeForStart: ", closestTimeForStart);
 
-        const arrivalTime = new Date(now.getTime() + timeToArrive * 60000);
-        const closestTime = getClosestTime(arrivalTime, times);
-        console.log(
-          "the closest time in prediction range from now is:",
-          closestTime
-        );
+        let startBikeNum =
+          closestTimeForStart == now
+            ? station[STATION_STRUCTURE.BIKE_NUM]
+            : stationPrediction[closestTimeForStart];
+        if (startBikeNum == 0) {
+          hasBike = false;
+        }
 
-        const predicted_bikeSpace = math.floor(
-          totalCapacity - stationPrediction[closestTime]
-        );
-        if (predicted_bikeSpace === 0) {
+        let returnBikeNum = stationPrediction[closestTimeForReturn];
+
+        if (returnBikeNum < 0) {
+          returnBikeNum == 0;
+        } else if (returnBikeNum > totalCapacity) {
+          returnBikeNum = totalCapacity;
+        }
+
+        const returnBikeSpace = totalCapacity - returnBikeNum;
+
+        if (Math.floor(returnBikeSpace) === 0) {
           hasSpace = false;
         }
-      };
-    }
-    // Convert the object keys (timestamp strings) to an array of Date objects
+      }
 
-    return {
-      station: station,
-      // Get distance from given location to station location
-      distance: getDistance(
-        lat,
-        long,
-        station[STATION_STRUCTURE.LATITUDE],
-        station[STATION_STRUCTURE.LONGITUDE]
-      ),
-      hasBike,
-      hasSpace,
-    };
-  });
-  // Smallest to largest
-  return distances.sort((a, b) => a.distance - b.distance);
+      return {
+        station: station,
+        // Get distance from given location to station location
+        distance: getDistance(
+          lat,
+          long,
+          station[STATION_STRUCTURE.LATITUDE],
+          station[STATION_STRUCTURE.LONGITUDE]
+        ),
+        hasBike,
+        hasSpace,
+      };
+    });
+    // Smallest to largest
+    return distances.sort((a, b) => a.distance - b.distance);
+  }
 }
 
 async function fetchLocation(loc) {
@@ -1027,4 +1034,10 @@ await getOverlayDate();
 await initWeather();
 await initMap(stations_json);
 const predictions = await getPrediction();
+
 console.log(predictions);
+const firstKey = Object.keys(predictions)[0];
+const predictTimeRange = Object.keys(predictions[firstKey]);
+//string
+//const earliestTime = Math.min(predictTimeRange[0], currentTime);
+const lastTime = new Date(predictTimeRange[predictTimeRange.length - 1]);

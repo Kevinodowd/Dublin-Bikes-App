@@ -74,11 +74,6 @@ def dublinWeather():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# def get_CurrentWeather(engine):
-#     #engine = generate_mysqlEnginelocal('dbikes')
-#     cw_df = pd.read_sql("SELECT * FROM currentWeather",con=engine)
-#     cw_df.to_json('/static/currentWeather.json',orient='records',lines=True)
-
 
 @app.route('/searchLocation/<loc>')
 def searchLocation(loc):
@@ -97,6 +92,7 @@ def searchLocation(loc):
 def get_predict():
     try:
         prediction = get_model_predict()
+        #print(prediction)
         
         if not prediction:
                 return jsonify({"error": "No predictions."}), 404

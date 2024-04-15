@@ -95,7 +95,7 @@ body {
 }
 
 #bikeLogo {
-  height: 6vh;
+  height: 8vh;
 }
 
 #overlayInfo {
@@ -120,6 +120,11 @@ body {
   border: none; /* Removed border */
   background-color: #f9f9f9;
   z-index: 100;
+}
+
+#form,
+#barchartContainer {
+  margin-left: 1vw;
 }
 
 .occupancyBtn {
