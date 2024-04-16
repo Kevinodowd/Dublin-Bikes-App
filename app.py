@@ -36,6 +36,7 @@ def stations():
         """
         with engine.connect() as conn:
             stations_json = sqlEngine.execute_sqlcommand_rds(conn,sqlCommand)
+            print(stations_json)
         if not stations_json:
             return jsonify({"error": "No stations found"}), 404
         return stations_json
