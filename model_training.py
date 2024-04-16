@@ -7,14 +7,14 @@ from time import time
 def get_model_predict():
     def get_stationId(conn):
         sqlCommand = f'SELECT stationId FROM stations;'
-        stationId = json.loads(sqlEngine.execute_sqlcommand_rds(conn,sqlCommand))
+        stationId = json.loads(sqlEngine.generate_mysqlenginerds(sqlCommand))
         stationId = [x[0] for x in stationId]
 
         return stationId
 
     def clean_data(conn):
         sqlCommand = f'SELECT * FROM weatherForecast;'
-        data = json.loads(sqlEngine.execute_sqlcommand_rds(conn,sqlCommand))
+        data = json.loads(sqlEngine.generate_mysqlenginerds(sqlCommand))
         data = pd.DataFrame(data)
         data.columns = ['stationId', 'weather', 'description', 'icon', 'temperature', 'pressure', 'humidity', 'windSpeed', 'windDeg', 'visibility', 'fetchTime', 'forecastTime']
         data = pd.get_dummies(data, columns=['description'])

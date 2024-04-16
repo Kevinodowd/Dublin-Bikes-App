@@ -10,7 +10,7 @@ from config import *
 
 app = Flask(__name__, static_url_path='')
 app.config.from_object('config')
-engine = sqlEngine.generate_mysqlEnginerds('dbikes');
+#engine = sqlEngine.generate_mysqlEnginerds('dbikes');
 
 @app.route('/')
 def root():
@@ -34,8 +34,7 @@ def stations():
             ORDER BY a.fetchTime DESC, a.stationId
             LIMIT 114;
         """
-        with engine.raw_connection() as conn:
-            stations_json = sqlEngine.execute_sqlcommand_rds(conn,sqlCommand)
+        stations_json = sqlEngine.generate_mysqlenginerds(sqlCommand)
         if not stations_json:
             return jsonify({"error": "No stations found"}), 404
         return stations_json
@@ -51,7 +50,7 @@ def station_availability(station_id):
         sqlCommand = f'SELECT * FROM availability WHERE stationId = {station_id}'
         engine = sqlEngine.generate_mysqlEnginerds('dbikes');
         with engine.raw_connection() as conn:
-            availability_data = sqlEngine.execute_sqlcommand_rds(conn,sqlCommand)
+            availability_data = sqlEngine.generate_mysqlenginerds(sqlCommand)
         return availability_data
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -63,7 +62,7 @@ def dublinWeather():
         sqlCommand = "SELECT * FROM currentWeather ORDER BY fetchTime DESC LIMIT 1;"
         engine = sqlEngine.generate_mysqlEnginerds('dbikes');
         with engine.raw_connection() as conn:
-            currentWeather_json = sqlEngine.execute_sqlcommand_rds(conn,sqlCommand)
+            currentWeather_json = sqlEngine.generate_mysqlenginerds(sqlCommand)
         if not currentWeather_json:
             return jsonify({"error": "No current weather data found"}), 404
         return currentWeather_json
