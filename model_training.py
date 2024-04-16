@@ -31,36 +31,36 @@ def get_model_predict():
 
     def predict(X_train,models):
         predictions = {}
-        while True:
-            try:
-                forecastTime = [str(x) for x in pd.to_datetime(X_train['forecastTime'],unit='s')]
-                X_train = X_train.drop(['forecastTime'],axis=1)
-                X_train_columns = X_train.columns
+        # while True:
+            # try:
+        forecastTime = [str(x) for x in pd.to_datetime(X_train['forecastTime'],unit='s')]
+        X_train = X_train.drop(['forecastTime'],axis=1)
+        X_train_columns = X_train.columns
 
-                for station, model in models.items():
-                    if model:
-                        try:
-                            required_columns = model.feature_names_in_
-                            complete_x = pd.DataFrame(columns=required_columns)
-                            for col in required_columns:
-                                if col in X_train_columns:
-                                    complete_x[col] = X_train[col]
-                                else:
-                                    complete_x[col] = False
-
-                            x_array = np.array(complete_x)
-                            results = model.predict(x_array)
-                            predictions[f'station_{station}'] = {forecastTime[i]: results[i] for i in range(len(forecastTime))}
-
-                        except Exception as e:
-                            predictions[f'station_{station}'] = None
+        for station, model in models.items():
+            if model:
+                # try:
+                required_columns = model.feature_names_in_
+                complete_x = pd.DataFrame(columns=required_columns)
+                for col in required_columns:
+                    if col in X_train_columns:
+                        complete_x[col] = X_train[col]
                     else:
-                        predictions[f'station_{station}'] = None
+                        complete_x[col] = False
 
-                break
-            except Exception as e:
-                print(e)
-                time.sleep(10)
+                x_array = np.array(complete_x)
+                results = model.predict(x_array)
+                predictions[f'station_{station}'] = {forecastTime[i]: results[i] for i in range(len(forecastTime))}
+
+            #     except Exception as e:
+            #         predictions[f'station_{station}'] = None
+            # else:
+            #     predictions[f'station_{station}'] = None
+
+                # break
+            # except Exception as e:
+            #     print(e)
+            #     time.sleep(10)
 
         return predictions
 
@@ -71,6 +71,7 @@ def get_model_predict():
         models[s] = load_model(s)
 
     predictions = predict(X_train,models)
-    return models
+    return predictions
 #
+p = get_model_predict()
 
