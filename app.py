@@ -34,9 +34,9 @@ def stations():
             ORDER BY a.fetchTime DESC, a.stationId
             LIMIT 114;
         """
-        with engine.connect() as conn:
+        with engine.raw_connection() as conn:
             stations_json = sqlEngine.execute_sqlcommand_rds(conn,sqlCommand)
-            print(stations_json)
+            #print(stations_json)
         if not stations_json:
             return jsonify({"error": "No stations found"}), 404
         return stations_json
