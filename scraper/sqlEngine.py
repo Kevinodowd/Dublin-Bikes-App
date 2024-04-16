@@ -6,25 +6,18 @@ import json
 #from config import *
 
 
-def generate_mysqlEnginerds(sqlCommand):
+def generate_mysqlEnginerds(db=None):
     URI = "database-1.cd28yc6ma768.eu-west-1.rds.amazonaws.com"
     PORT="3306"
     USER="admin"
-    DB='dbikes'
+    DB=db
     PASSWORD = 'yuliinrds'
     #mysql://admin:yuliinrds@database-1.cd28yc6ma768.eu-west-1.rds.amazonaws.com:3306/
-    # engine = create_engine(f"mysql://{USER}:{PASSWORD}@{URI}:{PORT}",echo=True)
-    conn = pymysql.connect(host=URI, user=USER,
-            passwd=PASSWORD, db=DB,
-            port=PORT)
-    cursor = conn.cursor()
-    cursor.execute(sqlCommand)
-    data_json = cursor.fetchall()
-    conn.close()
-    return json.dumps(data_json)
-    # else:
-    #     engine = create_engine(f"mysql://{USER}:{PASSWORD}@{URI}:{PORT}/{DB}",echo=True)
-    # return engine
+    if not db:
+        engine = create_engine(f"mysql://{USER}:{PASSWORD}@{URI}:{PORT}",echo=True)
+    else:
+        engine = create_engine(f"mysql://{USER}:{PASSWORD}@{URI}:{PORT}/{DB}",echo=True)
+    return engine
 
 
 def execute_sqlcommand_rds(conn,sqlCommand):
