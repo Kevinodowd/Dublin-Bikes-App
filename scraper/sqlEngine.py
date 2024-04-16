@@ -5,19 +5,6 @@ from sshtunnel import SSHTunnelForwarder
 import json
 from config import *
 
-def generate_mysqlEnginelocal(db=None):
-    URI = "127.0.0.1"
-    PORT="3306"
-    USER="root"
-    DB=db
-    PASSWORD = '15040748'
-    #mysql://admin:yuliinrds@database-1.cd28yc6ma768.eu-west-1.rds.amazonaws.com:3306/
-    #f"mysql+mysqlconnector://{USER}:{PASSWORD}@{URI}:{PORT}",echo=True
-    if not db:
-        engine = create_engine(f"mysql+mysqlconnector://{USER}:{PASSWORD}@{URI}:{PORT}",echo=True)
-    else:
-        engine = create_engine(f"mysql+mysqlconnector://{USER}:{PASSWORD}@{URI}:{PORT}/{DB}",echo=True)
-    return engine
 
 def generate_mysqlEnginerds(db=None):
     URI = "database-1.cd28yc6ma768.eu-west-1.rds.amazonaws.com"
@@ -33,6 +20,11 @@ def generate_mysqlEnginerds(db=None):
     return engine
 
 
+def execute_sqlcommand_rds(conn,sqlCommand):
+    cursor = conn.cursor()
+    cursor.execute(sqlCommand)
+    data_json = cursor.fetchall()
+    return json.dumps(data_json)
 
 def connect_to_rds(query):
     mypkey = paramiko.RSAKey.from_private_key_file(private_key_path)
@@ -55,10 +47,11 @@ def connect_to_rds(query):
         conn = pymysql.connect(host='127.0.0.1', user=sql_username,
                 passwd=sql_password, db=sql_main_database,
                 port=tunnel.local_bind_port)
-        cursor = conn.cursor()
-        sqlCommand = query
-        cursor.execute(sqlCommand)
-        data_json = cursor.fetchall()
+        # cursor = conn.cursor()
+        # sqlCommand = query
+        # cursor.execute(sqlCommand)
+        # data_json = cursor.fetchall()
+        data_json = execute_sqlcommand_rds(conn,query)
         #print('Successful')
         conn.close()
-        return json.dumps(data_json)
+        return data_json
