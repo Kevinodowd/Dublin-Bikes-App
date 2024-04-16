@@ -6,7 +6,7 @@ import json
 #from config import *
 
 
-def generate_mysqlEnginerds(db=None):
+def generate_mysqlEnginerds(db='dbikes'):
     URI = "database-1.cd28yc6ma768.eu-west-1.rds.amazonaws.com"
     PORT=3306
     USER="admin"
