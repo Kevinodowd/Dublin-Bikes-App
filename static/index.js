@@ -41,6 +41,24 @@ const STATION_STRUCTURE = {
   LAST_UPDATE: 9,
 };
 
+async function setDefaultDatetimeLocal(elementId) {
+  const datetimeInput = document.getElementById(elementId);
+  const now = new Date();
+
+  const dateTimeLocalFormat =
+    now.getFullYear() +
+    "-" +
+    ("0" + (now.getMonth() + 1)).slice(-2) +
+    "-" +
+    ("0" + now.getDate()).slice(-2) +
+    "T" +
+    ("0" + now.getHours()).slice(-2) +
+    ":" +
+    ("0" + now.getMinutes()).slice(-2);
+
+  datetimeInput.value = dateTimeLocalFormat;
+}
+
 function clearMarkers() {
   currentMarkers.forEach((marker) => {
     marker.map = null; // remove marker from map
@@ -175,7 +193,7 @@ async function initWeather(weather) {
   //   "&appid=17b4a592cf658d24febca963b75f7adc";
 
   const weather_json = await fetchWeather();
-  console.log(weather_json);
+  //console.log(weather_json);
   //stationId weather description icon temperature pressure
   //humidity windSpeed windDeg visibility fetchTime lastUpdate
   if (weather_json) {
@@ -371,10 +389,10 @@ async function generateIcon(station, type) {
         const selectBtns = [selectBtnStart, selectBtnDestination];
 
         selectBtns.forEach((button) => {
-          console.log(
-            station[STATION_STRUCTURE.ADDRESS],
-            station[STATION_STRUCTURE.BIKE_NUM]
-          );
+          // console.log(
+          //   station[STATION_STRUCTURE.ADDRESS],
+          //   station[STATION_STRUCTURE.BIKE_NUM]
+          // );
           if (
             station[STATION_STRUCTURE.BIKE_NUM] === 0 &&
             button.getAttribute("data-role") === "start"
@@ -391,7 +409,7 @@ async function generateIcon(station, type) {
             selectStation(station, role, marker, type);
             clearStartOrEnd(role);
             button.classList.add(role);
-            console.log(button.classList);
+            //console.log(button.classList);
           });
         });
 
@@ -643,6 +661,9 @@ window.resetLocationInputs = async function () {
   if (directionsRenderer) {
     directionsRenderer.setMap(null);
   }
+  document.getElementById("selectedStationInfo").innerText = "";
+  await setDefaultDatetimeLocal("startTime");
+  returnTimeInput.value = "";
 };
 
 /**
@@ -659,154 +680,161 @@ window.goToLocation = async function (startLocString, endLocString) {
   let nearestStartLocationWithBike = null;
   let nearestEndLocationWithSpace = null;
 
-  if (selectedStart) {
-    // We have selected the start location from a station's info popup
-    startLocation = {
-      name: selectedStart[STATION_STRUCTURE.ADDRESS],
-      geometry: {
-        location: {
-          lat: selectedStart[STATION_STRUCTURE.LATITUDE],
-          lng: selectedStart[STATION_STRUCTURE.LONGITUDE],
+  const now = new Date();
+  const startTime = new Date(startTimeInput.value);
+  const returnTime = new Date(returnTimeInput.value);
+  let arrivalTime;
+  let submitOrNot = true;
+
+  if (returnTime == "") {
+    const timeToArrive = (routeDistance / 19) * 1000 * 60;
+    arrivalTime = new Date(now.getTime() + timeToArrive * 60000);
+  } else if (returnTime > lastTime) {
+    submitOrNot = false;
+    alert(
+      `Sorry, we cannot predict ${returnTime}'s data. Your return time should be no later than ${lastTime}.`
+    );
+  } else if (returnTime < startTime) {
+    submitOrNot = false;
+    //console.log("startTime: ", startTime, " returnTime: ", returnTime);
+    alert("Your return Time is earlier than start time!");
+  } else {
+    arrivalTime = returnTime;
+  }
+  if (startTime > lastTime) {
+    alert(`You start time should be between ${currentTime} and ${lastTime}`);
+    submitOrNot = false;
+  }
+
+  if (submitOrNot) {
+    if (selectedStart) {
+      // We have selected the start location from a station's info popup
+      startLocation = {
+        name: selectedStart[STATION_STRUCTURE.ADDRESS],
+        geometry: {
+          location: {
+            lat: selectedStart[STATION_STRUCTURE.LATITUDE],
+            lng: selectedStart[STATION_STRUCTURE.LONGITUDE],
+          },
         },
-      },
-    };
-    nearestStartLocationWithBike = { station: selectedStart };
-  }
-
-  if (
-    startLocString?.length > 0 &&
-    (!selectedStart || startLocation.name !== startLocString)
-  ) {
-    const possibleStartLocations = await fetchLocation(startLocString);
-    if (possibleStartLocations?.candidates?.length > 0) {
-      startLocation = possibleStartLocations.candidates[0];
-      // Get sorted list of places with distances from the given location
-      const locationsNearStartLocation = getDistancesToLocation(
-        startLocation.geometry.location.lat,
-        startLocation.geometry.location.lng
-      );
-      for (let i = 0; i < locationsNearStartLocations.length; i++) {
-        const station = locationsNearStartLocations[i];
-        if (station.hasBike !== 0) {
-          nearestStartLocationWithBike = station;
-          break;
-        }
-      }
-
-      console.log(
-        "locations near start locations:",
-        locationsNearStartLocation
-      );
-    } else {
-      alert("Enter values before submit");
+      };
+      nearestStartLocationWithBike = { station: selectedStart };
     }
-  }
 
-  if (selectedEnd) {
-    // We have selected the end location from a station's info popup
-    endLocation = {
-      name: selectedEnd[STATION_STRUCTURE.ADDRESS],
-      geometry: {
-        location: {
-          lat: selectedEnd[STATION_STRUCTURE.LATITUDE],
-          lng: selectedEnd[STATION_STRUCTURE.LONGITUDE],
+    if (
+      startLocString?.length > 0 &&
+      (!selectedStart || startLocation.name !== startLocString)
+    ) {
+      const possibleStartLocations = await fetchLocation(startLocString);
+      if (possibleStartLocations?.candidates?.length > 0) {
+        startLocation = possibleStartLocations.candidates[0];
+        // Get sorted list of places with distances from the given location
+        const locationsNearStartLocation = getDistancesToLocation(
+          startLocation.geometry.location.lat,
+          startLocation.geometry.location.lng,
+          arrivalTime
+        );
+
+        console.log(locationsNearStartLocation);
+
+        for (let i = 0; i < locationsNearStartLocation.length; i++) {
+          const station = locationsNearStartLocation[i];
+          if (station.hasBike !== 0) {
+            nearestStartLocationWithBike = station;
+            break;
+          }
+        }
+
+        console.log(
+          "locations near start locations:",
+          locationsNearStartLocation
+        );
+      } else {
+        alert("Enter values before submit");
+      }
+    }
+
+    if (selectedEnd) {
+      // We have selected the end location from a station's info popup
+      endLocation = {
+        name: selectedEnd[STATION_STRUCTURE.ADDRESS],
+        geometry: {
+          location: {
+            lat: selectedEnd[STATION_STRUCTURE.LATITUDE],
+            lng: selectedEnd[STATION_STRUCTURE.LONGITUDE],
+          },
         },
-      },
-    };
-    nearestEndLocationWithSpace = { station: selectedEnd };
-  }
-
-  if (
-    endLocString?.length > 0 &&
-    (!selectedEnd || endLocation.name !== endLocString)
-  ) {
-    const possibleEndLocations = await fetchLocation(endLocString);
-    if (possibleEndLocations?.candidates?.length > 0) {
-      endLocation = possibleEndLocations.candidates[0];
-      // Get sorted list of places with distances from the given location
-      const locationsNearEndLocation = getDistancesToLocation(
-        endLocation.geometry.location.lat,
-        endLocation.geometry.location.lng
-      );
-      for (let i = 0; i < locationsNearEndLocation.length; i++) {
-        const station = locationsNearEndLocation[i];
-        if (station.hasSpace !== 0) {
-          nearestEndLocationWithSpace = station;
-          break;
-        }
-      }
-
-      console.log("locations near end locations:", locationsNearEndLocation);
-    } else {
-      alert("Enter values before submit");
+      };
+      nearestEndLocationWithSpace = { station: selectedEnd };
     }
-  }
 
-  if (nearestStartLocationWithBike && nearestEndLocationWithSpace) {
-    // Replace inputs with the real location names from api
-    startLocationInput.value = startLocation.name;
-    endLocationInput.value = endLocation.name;
+    if (
+      endLocString?.length > 0 &&
+      (!selectedEnd || endLocation.name !== endLocString)
+    ) {
+      const possibleEndLocations = await fetchLocation(endLocString);
+      if (possibleEndLocations?.candidates?.length > 0) {
+        endLocation = possibleEndLocations.candidates[0];
+        // Get sorted list of places with distances from the given location
+        const locationsNearEndLocation = getDistancesToLocation(
+          endLocation.geometry.location.lat,
+          endLocation.geometry.location.lng,
+          arrivalTime
+        );
+        for (let i = 0; i < locationsNearEndLocation.length; i++) {
+          const station = locationsNearEndLocation[i];
+          if (
+            station.hasSpace !== 0 &&
+            station != nearestStartLocationWithBike
+          ) {
+            nearestEndLocationWithSpace = station;
+            break;
+          }
+        }
+        console.log("nearest start location: ", nearestStartLocationWithBike);
+        console.log("nearest end location: ", nearestEndLocationWithSpace);
+      } else {
+        alert("Enter values before submit");
+      }
+    }
 
-    document.getElementById(
-      "selectedStationInfo"
-    ).innerHTML = `<p>We suggest you ride from <span style="font-weight: bold;">No.${
-      nearestStartLocationWithBike["station"][STATION_STRUCTURE.ID] +
-      " " +
-      nearestStartLocationWithBike["station"][STATION_STRUCTURE.ADDRESS]
-    } </span>
-    to <span style="font-weight: bold;">No.${
+    if (nearestStartLocationWithBike && nearestEndLocationWithSpace) {
+      // Replace inputs with the real location names from api
+      startLocationInput.value = startLocation.name;
+      endLocationInput.value = endLocation.name;
+      returnTimeInput.value = arrivalTime;
+
+      document.getElementById(
+        "selectedStationInfo"
+      ).innerHTML = `<p><span style="font-weight: bold;">No.${
+        nearestStartLocationWithBike["station"][STATION_STRUCTURE.ID] +
+        " " +
+        nearestStartLocationWithBike["station"][STATION_STRUCTURE.ADDRESS]
+      } </span>
+    ---> <span style="font-weight: bold;">No.${
       nearestEndLocationWithSpace["station"][STATION_STRUCTURE.ID] +
       " " +
       nearestEndLocationWithSpace["station"][STATION_STRUCTURE.ADDRESS]
     }.</span></p>`;
 
-    clearMarkers();
-    if (!!directionsRenderer) {
-      directionsRenderer.setMap(null);
+      clearMarkers();
+      if (!!directionsRenderer) {
+        directionsRenderer.setMap(null);
+      }
+
+      await addStartAndEndMarkers(startLocation, endLocation);
+      await addStartAndEndStationMarkers(
+        nearestStartLocationWithBike,
+        nearestEndLocationWithSpace
+      );
+
+      calculateAndDisplayRoute(
+        nearestStartLocationWithBike,
+        nearestEndLocationWithSpace
+      );
+    } else {
+      alert("Enter values before submit");
     }
-
-    // const startMarker = await generateIcon(
-    //   {
-    //     [STATION_STRUCTURE.ID]: "startMarker",
-    //     [STATION_STRUCTURE.ADDRESS]: startLocation.name,
-    //     [STATION_STRUCTURE.LATITUDE]: startLocation.geometry.location.lat,
-    //     [STATION_STRUCTURE.LONGITUDE]: startLocation.geometry.location.lng,
-    //   },
-    //   "start"
-    // );
-
-    await addStartAndEndMarkers(startLocation, endLocation);
-
-    //set the map center to the middle point of the start and end
-    // map.setCenter({
-    //   lat: (endMarker.position.lat + startMarker.position.lat) / 2,
-    //   lng: (endMarker.position.lng + startMarker.position.lng) / 2,
-    // });
-
-    //map.setZoom(13);
-
-    await addStartAndEndStationMarkers(
-      nearestStartLocationWithBike,
-      nearestEndLocationWithSpace
-    );
-
-    calculateAndDisplayRoute(
-      nearestStartLocationWithBike,
-      nearestEndLocationWithSpace
-    );
-
-    // map.setCenter({
-    //   lat:
-    //     (locationsNearStartLocation[0][STATION_STRUCTURE.LATITUDE] +
-    //       locationsNearEndLocation[0][STATION_STRUCTURE.LATITUDE]) /
-    //     2,
-    //   lng:
-    //     (locationsNearStartLocation[0][STATION_STRUCTURE.LONGITUDE] +
-    //       locationsNearEndLocation[0][STATION_STRUCTURE.LONGITUDE]) /
-    //     2,
-    // });
-  } else {
-    alert("Enter values before submit");
   }
 };
 
@@ -846,7 +874,7 @@ async function addStartAndEndStationMarkers(start, end) {
   const startStationMarker = await generateIcon(start.station, "bike");
   currentMarkers.push(startStationMarker);
 
-  const endStationMarker = await generateIcon(end.station, "bike");
+  const endStationMarker = await generateIcon(end.station, "space");
   currentMarkers.push(endStationMarker);
 }
 
@@ -906,102 +934,73 @@ function getDistance(lat1, lon1, lat2, lon2) {
  * @param {number} long the longitude of the location to compare station to
  * @returns a list of stations
  */
-function getDistancesToLocation(lat, long) {
-  const now = new Date();
-  const startTime = new Date(startTimeInput.value);
-  const returnTime = new Date(returnTimeInput.value);
-  let arrivalTime;
-  let submitOrNot = true;
-  if (startTime > lastTime || startTime < currentTime.setSeconds(0)) {
-    alert(`You start time should be between ${currentTime} and ${lastTime}`);
-    submitOrNot = false;
-  }
-  if (returnTime == "") {
-    const timeToArrive = (routeDistance / 19) * 1000 * 60;
-    arrivalTime = new Date(now.getTime() + timeToArrive * 60000);
-  } else if (returnTime > lastTime) {
-    submitOrNot = false;
-    alert(
-      `Sorry, we cannot predict ${returnTime}'s data. Your return time should be no later than ${lastTime}.`
-    );
-  } else if (returnTime < startTime) {
-    submitOrNot = false;
-    //console.log("startTime: ", startTime, " returnTime: ", returnTime);
-    alert("Your return Time is earlier than start time!");
-  } else {
-    arrivalTime = returnTime;
-  }
+function getDistancesToLocation(lat, long, arrivalTime) {
+  const distances = stations_json.map((station) => {
+    let hasBike = true;
+    let hasSpace = true;
+    const totalCapacity =
+      station[STATION_STRUCTURE.BIKE_NUM] +
+      station[STATION_STRUCTURE.BIKE_STANDS];
 
-  if (submitOrNot) {
-    const distances = stations_json.map((station) => {
-      let hasBike = true;
-      let hasSpace = true;
-      const totalCapacity =
-        station[STATION_STRUCTURE.BIKE_NUM] +
-        station[STATION_STRUCTURE.BIKE_STANDS];
+    const stationPrediction =
+      predictions[`station_${station[STATION_STRUCTURE.ID]}`];
 
-      const stationPrediction =
-        predictions[`station_${station[STATION_STRUCTURE.ID]}`];
+    if (stationPrediction) {
+      //get the time string in the prediction json to date format in js
+      let times = Object.keys(stationPrediction).map((time) => new Date(time));
 
-      if (stationPrediction) {
-        //get the time string in the prediction json to date format in js
-        let times = Object.keys(stationPrediction).map(
-          (time) => new Date(time)
+      times.unshift(currentTime);
+      // Function to find the closest time
+      const getClosestTime = (desiredTime, times) => {
+        return times.reduce((prev, curr) =>
+          desiredTime < prev && desiredTime > curr ? curr : prev
         );
+      };
+      //for a beginner, the average speed is 12 miles per hour, which is around 19 km per hour
+      //how many minutes
+      const closestTimeForReturn = getClosestTime(arrivalTime, times);
+      const closestTimeForStart = getClosestTime(startTime, times);
+      // console.log("closestTimeForReturn: ", closestTimeForReturn);
+      // console.log("closestTimeForStart: ", closestTimeForStart);
 
-        times.unshift(now);
-        // Function to find the closest time
-        const getClosestTime = (desiredTime, times) => {
-          return times.reduce((prev, curr) =>
-            desiredTime < prev && desiredTime > curr ? curr : prev
-          );
-        };
-        //for a beginner, the average speed is 12 miles per hour, which is around 19 km per hour
-        //how many minutes
-        const closestTimeForReturn = getClosestTime(arrivalTime, times);
-        const closestTimeForStart = getClosestTime(startTime, times);
-        console.log("closestTimeForReturn: ", closestTimeForReturn);
-        console.log("closestTimeForStart: ", closestTimeForStart);
-
-        let startBikeNum =
-          closestTimeForStart == now
-            ? station[STATION_STRUCTURE.BIKE_NUM]
-            : stationPrediction[closestTimeForStart];
-        if (startBikeNum == 0) {
-          hasBike = false;
-        }
-
-        let returnBikeNum = stationPrediction[closestTimeForReturn];
-
-        if (returnBikeNum < 0) {
-          returnBikeNum == 0;
-        } else if (returnBikeNum > totalCapacity) {
-          returnBikeNum = totalCapacity;
-        }
-
-        const returnBikeSpace = totalCapacity - returnBikeNum;
-
-        if (Math.floor(returnBikeSpace) === 0) {
-          hasSpace = false;
-        }
+      let startBikeNum =
+        closestTimeForStart == currentTime
+          ? station[STATION_STRUCTURE.BIKE_NUM]
+          : stationPrediction[closestTimeForStart];
+      if (startBikeNum == 0) {
+        hasBike = false;
       }
 
-      return {
-        station: station,
-        // Get distance from given location to station location
-        distance: getDistance(
-          lat,
-          long,
-          station[STATION_STRUCTURE.LATITUDE],
-          station[STATION_STRUCTURE.LONGITUDE]
-        ),
-        hasBike,
-        hasSpace,
-      };
-    });
-    // Smallest to largest
-    return distances.sort((a, b) => a.distance - b.distance);
-  }
+      let returnBikeNum = stationPrediction[closestTimeForReturn];
+
+      if (returnBikeNum < 0) {
+        returnBikeNum == 0;
+      } else if (returnBikeNum > totalCapacity) {
+        returnBikeNum = totalCapacity;
+      }
+
+      const returnBikeSpace = totalCapacity - returnBikeNum;
+
+      if (Math.floor(returnBikeSpace) === 0) {
+        hasSpace = false;
+      }
+    }
+
+    return {
+      station: station,
+      // Get distance from given location to station location
+      distance: getDistance(
+        lat,
+        long,
+        station[STATION_STRUCTURE.LATITUDE],
+        station[STATION_STRUCTURE.LONGITUDE]
+      ),
+      hasBike,
+      hasSpace,
+    };
+  });
+  // Smallest to largest
+  return distances.sort((a, b) => a.distance - b.distance);
 }
 
 async function fetchLocation(loc) {
@@ -1032,12 +1031,11 @@ async function getPrediction() {
 
 await getOverlayDate();
 await initWeather();
+await setDefaultDatetimeLocal("startTime");
 await initMap(stations_json);
 const predictions = await getPrediction();
 
 console.log(predictions);
 const firstKey = Object.keys(predictions)[0];
 const predictTimeRange = Object.keys(predictions[firstKey]);
-//string
-//const earliestTime = Math.min(predictTimeRange[0], currentTime);
 const lastTime = new Date(predictTimeRange[predictTimeRange.length - 1]);
