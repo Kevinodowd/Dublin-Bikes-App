@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine
-import pymysql
-import paramiko
-from sshtunnel import SSHTunnelForwarder
+# import pymysql
+# import paramiko
+# from sshtunnel import SSHTunnelForwarder
 import json
 from config import *
 
@@ -28,8 +28,6 @@ def execute_sqlcommand_rds(conn,sqlCommand):
 
 def connect_to_rds(query):
     mypkey = paramiko.RSAKey.from_private_key_file(private_key_path)
-    # if you want to use ssh password use - ssh_password='your ssh password', bellow
-
     sql_hostname = 'database-1.cd28yc6ma768.eu-west-1.rds.amazonaws.com'
     sql_username = 'admin'
     sql_password = 'yuliinrds'
@@ -47,11 +45,6 @@ def connect_to_rds(query):
         conn = pymysql.connect(host='127.0.0.1', user=sql_username,
                 passwd=sql_password, db=sql_main_database,
                 port=tunnel.local_bind_port)
-        # cursor = conn.cursor()
-        # sqlCommand = query
-        # cursor.execute(sqlCommand)
-        # data_json = cursor.fetchall()
         data_json = execute_sqlcommand_rds(conn,query)
-        #print('Successful')
         conn.close()
         return data_json
