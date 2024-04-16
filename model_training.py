@@ -13,7 +13,7 @@ def get_model_predict():
 
     def clean_data():
         sqlCommand = f'SELECT * FROM weatherForecast;'
-        data = json.loads(sqlEngine.generate_mysqlenginerds(sqlCommand))
+        data = json.loads(sqlEngine.ec2_to_rds(sqlCommand))
         data = pd.DataFrame(data)
         data.columns = ['stationId', 'weather', 'description', 'icon', 'temperature', 'pressure', 'humidity', 'windSpeed', 'windDeg', 'visibility', 'fetchTime', 'forecastTime']
         data = pd.get_dummies(data, columns=['description'])
