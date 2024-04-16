@@ -67,7 +67,7 @@ def get_model_predict():
         return predictions
 
     engine = sqlEngine.generate_mysqlEnginerds('dbikes');
-    with engine.raw_connection() as conn:
+    with engine.connectn() as conn:
         X_train = clean_data(conn)
         stationId = get_stationId(conn)
     models = {}
