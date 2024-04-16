@@ -8,7 +8,7 @@ import json
 
 def generate_mysqlEnginerds(db=None):
     URI = "database-1.cd28yc6ma768.eu-west-1.rds.amazonaws.com"
-    PORT="3306"
+    PORT=3306
     USER="admin"
     DB=db
     PASSWORD = 'yuliinrds'
