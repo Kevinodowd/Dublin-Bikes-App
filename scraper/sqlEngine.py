@@ -5,7 +5,6 @@ import pymysql
 import json
 #from config import *
 
-
 def generate_mysqlEnginerds(db='dbikes'):
     URI = "database-1.cd28yc6ma768.eu-west-1.rds.amazonaws.com"
     PORT=3306
@@ -18,6 +17,19 @@ def generate_mysqlEnginerds(db='dbikes'):
     else:
         engine = create_engine(f"mysql://{USER}:{PASSWORD}@{URI}:{PORT}/{DB}",echo=True)
     return engine
+
+def ec2_to_rds(query):
+    URI = "database-1.cd28yc6ma768.eu-west-1.rds.amazonaws.com"
+    PORT=3306
+    USER="admin"
+    DB='dbikes'
+    PASSWORD = 'yuliinrds'
+    conn = pymysql.connect(host=URI, user=USER,
+            passwd=PASSWORD, db=DB,
+            port=PORT)
+    data_json = execute_sqlcommand_rds(conn,query)
+    conn.close()
+    return data_json
 
 
 def execute_sqlcommand_rds(conn,sqlCommand):
