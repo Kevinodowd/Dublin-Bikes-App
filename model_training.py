@@ -71,6 +71,6 @@ def get_model_predict():
         models[s] = load_model(s)
 
     predictions = predict(X_train,models)
-    return predictions
+    return models
 #
 
