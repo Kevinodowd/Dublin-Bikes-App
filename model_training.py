@@ -39,23 +39,23 @@ def get_model_predict():
 
                 for station, model in models.items():
                     if model:
-                        try:
-                            required_columns = model.feature_names_in_
-                            complete_x = pd.DataFrame(columns=required_columns)
-                            for col in required_columns:
-                                if col in X_train_columns:
-                                    complete_x[col] = X_train[col]
-                                else:
-                                    complete_x[col] = False
+                        #try:
+                        required_columns = model.feature_names_in_
+                        complete_x = pd.DataFrame(columns=required_columns)
+                        for col in required_columns:
+                            if col in X_train_columns:
+                                complete_x[col] = X_train[col]
+                            else:
+                                complete_x[col] = False
 
-                            x_array = np.array(complete_x)
-                            results = model.predict(x_array)
+                        x_array = np.array(complete_x)
+                        results = model.predict(x_array)
 
 
-                            predictions[f'station_{station}'] = {forecastTime[i]: results[i] for i in range(len(forecastTime))}
+                        predictions[f'station_{station}'] = {forecastTime[i]: results[i] for i in range(len(forecastTime))}
 
-                        except Exception as e:
-                            predictions[f'station_{station}'] = None
+                        # except Exception as e:
+                        #     predictions[f'station_{station}'] = None
                     else:
                         predictions[f'station_{station}'] = None
 
