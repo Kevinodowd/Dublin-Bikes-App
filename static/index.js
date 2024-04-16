@@ -41,7 +41,7 @@ const STATION_STRUCTURE = {
   LAST_UPDATE: 9,
 };
 
-async function setDefaultDatetimeLocal(elementId) {
+async function setDefaultDatetimeLocal(elementId, time) {
   const datetimeInput = document.getElementById(elementId);
   const now = new Date();
 
@@ -515,11 +515,8 @@ function generateTodayBarChart(data_input, barchartSection) {
       title: "today's occupancy",
       font: { size: 12.5 },
       barmode: "stack",
-      // attempts below to change xticks/xtitle rotation etc.. further check
       autosize: true,
-      // width: 300,
-      // height: 220,
-      // xaxis: {title: None},
+
       xanchor: "free",
       xref: "container",
       xaxis: { automargin: true },
@@ -662,7 +659,7 @@ window.resetLocationInputs = async function () {
     directionsRenderer.setMap(null);
   }
   document.getElementById("selectedStationInfo").innerText = "";
-  await setDefaultDatetimeLocal("startTime");
+  await setDefaultDatetimeLocal("startTime", currentTime);
   returnTimeInput.value = "";
 };
 
@@ -687,8 +684,11 @@ window.goToLocation = async function (startLocString, endLocString) {
   let submitOrNot = true;
 
   if (returnTime == "") {
+    //the user doesn't input the return time, then by default we take the shortest route and get the possible time
+
     const timeToArrive = (routeDistance / 19) * 1000 * 60;
     arrivalTime = new Date(now.getTime() + timeToArrive * 60000);
+    await setDefaultDatetimeLocal("returnTime", arrivalTime);
   } else if (returnTime > lastTime) {
     submitOrNot = false;
     alert(
@@ -1031,7 +1031,7 @@ async function getPrediction() {
 
 await getOverlayDate();
 await initWeather();
-await setDefaultDatetimeLocal("startTime");
+await setDefaultDatetimeLocal("startTime", currentTime);
 await initMap(stations_json);
 const predictions = await getPrediction();
 

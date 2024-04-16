@@ -1,6 +1,10 @@
 <html>
   <head>
-    <title>Dublin Bikes</title>
+    <title>
+      <img id="bikeLogo"
+      src="{{url_for('static',filename='media/logo_with_name.png')}}" alt="Bike
+      logo" /> Dublin Bikes
+    </title>
     <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 
@@ -46,16 +50,20 @@
         <!-- 
         <button onclick="goToLocation(fromLoc.value, toLoc.value)"> -->
         <div>
-          <input id="submitBtn" class="disabled"
+          <input
+            id="submitBtn"
+            class="disabled"
             type="submit"
             value="Submit"
-            disabled = "true"
+            disabled="true"
             onclick="goToLocation(startLoc.value, endLoc.value)"
           />
-          <input id="resetBtn" class="disabled"
+          <input
+            id="resetBtn"
+            class="disabled"
             type="reset"
             value="Reset"
-            disabled = "true"
+            disabled="true"
             onclick="return resetLocationInputs()"
           />
 
@@ -91,11 +99,11 @@
 
     <div id="map-container">
       <div id="infoHeader">
-        <img
+        <!-- <img
           id="bikeLogo"
           src="{{url_for('static',filename='media/logo_with_name.png')}}"
           alt="Bike logo"
-        />
+        /> -->
         <div id="overlayInfo">Loading the current weather ...</div>
       </div>
       <div id="buttonContainer">
@@ -112,26 +120,6 @@
     <!-- copy down from google api map document-->
     <!-- prettier-ignore -->
     <script>(g => { var h, a, k, p = "The Google Maps JavaScript API", c = "google", l = "importLibrary", q = "__ib__", m = document, b = window; b = b[c] || (b[c] = {}); var d = b.maps || (b.maps = {}), r = new Set, e = new URLSearchParams, u = () => h || (h = new Promise(async (f, n) => { await (a = m.createElement("script")); e.set("libraries", [...r] + ""); for (k in g) e.set(k.replace(/[A-Z]/g, t => "_" + t[0].toLowerCase()), g[k]); e.set("callback", c + ".maps." + q); a.src = `https://maps.${c}apis.com/maps/api/js?` + e; d[q] = f; a.onerror = () => h = n(Error(p + " could not load.")); a.nonce = m.querySelector("script[nonce]")?.nonce || ""; m.head.append(a) })); d[l] ? console.warn(p + " only loads once. Ignoring:", g) : d[l] = (f, ...n) => r.add(f) && u().then(() => d[l](f, ...n)) })
-      ({ key: "AIzaSyAX_iqnLB8j7JggiCSHd-pm6RDBBeSbRU0", v: "beta" });</script>
-
-    <script>
-      window.onload = function () {
-        const startdatetimeInput = document.getElementById("startTime");
-        const now = new Date();
-
-        const startdateTimeLocalFormat =
-          now.getFullYear() +
-          "-" +
-          ("0" + (now.getMonth() + 1)).slice(-2) +
-          "-" +
-          ("0" + now.getDate()).slice(-2) +
-          "T" +
-          ("0" + now.getHours()).slice(-2) +
-          ":" +
-          ("0" + now.getMinutes()).slice(-2);
-
-        startdatetimeInput.value = startdateTimeLocalFormat;
-      };
-    </script>
+      ({ key: "{{ MAPS_APIKEY }}", v: "beta" });</script>
   </body>
 </html>

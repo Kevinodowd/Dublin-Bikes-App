@@ -22,7 +22,8 @@ app.config.from_object('config')
 @app.route('/')
 def root():
     try:
-        return render_template("default.html")
+        MAPS_APIKEY = app.config['MAPS_APIKEY']
+        return render_template("default.html",MAPS_APIKEY=MAPS_APIKEY)
     except TemplateNotFound:
         return "Default template not found", 404
     except Exception as e:
