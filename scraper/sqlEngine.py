@@ -20,6 +20,7 @@ def generate_mysqlEnginerds(sqlCommand):
     cursor = conn.cursor()
     cursor.execute(sqlCommand)
     data_json = cursor.fetchall()
+    conn.close()
     return json.dumps(data_json)
     # else:
     #     engine = create_engine(f"mysql://{USER}:{PASSWORD}@{URI}:{PORT}/{DB}",echo=True)
