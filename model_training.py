@@ -4,6 +4,7 @@ from scraper import sqlEngine
 import pickle
 import numpy as np
 from time import time
+
 def get_model_predict():
     def get_stationId():
         sqlCommand = f'SELECT stationId FROM stations;'
@@ -65,8 +66,6 @@ def get_model_predict():
 
         return predictions
 
-    engine = sqlEngine.generate_mysqlEnginerds('dbikes');
-    #with engine.connectn() as conn:
     X_train = clean_data()
     stationId = get_stationId()
     models = {}
