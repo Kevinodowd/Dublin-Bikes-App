@@ -8,25 +8,17 @@ def get_model_predict():
     def get_stationId():
         sqlCommand = f'SELECT stationId FROM stations;'
         stationId = json.loads(sqlEngine.connect_to_rds(sqlCommand))
-        #complete_columns = list(pd.read_csv('cleaned_data_sample.csv').iloc[:,0])
-
         stationId = [x[0] for x in stationId]
 
         return stationId
 
-    #Cleamimg the forecast data making predictions and providing a route for it
     def clean_data():
         sqlCommand = f'SELECT * FROM weatherForecast;'
         data = json.loads(sqlEngine.connect_to_rds(sqlCommand))
-        #print(data)
-        #complete_columns = list(pd.read_csv('cleaned_data_sample.csv').iloc[:,0])
-
         data = pd.DataFrame(data)
         data.columns = ['stationId', 'weather', 'description', 'icon', 'temperature', 'pressure', 'humidity', 'windSpeed', 'windDeg', 'visibility', 'fetchTime', 'forecastTime']
         data = pd.get_dummies(data, columns=['description'])
-
         X_train = data.drop(['stationId','fetchTime','icon'], axis=1)
-
         return X_train
 
     def load_model(stationId):
@@ -38,14 +30,11 @@ def get_model_predict():
             return None
 
     def predict(X_train,models):
-        #test whether if the predictWeather table is shut down, will it block other features working?
-
         predictions = {}
         while True:
             try:
                 forecastTime = [str(x) for x in pd.to_datetime(X_train['forecastTime'],unit='s')]
                 X_train = X_train.drop(['forecastTime'],axis=1)
-                #print(X_train)
                 X_train_columns = X_train.columns
 
                 for station, model in models.items():
@@ -60,7 +49,6 @@ def get_model_predict():
                                     complete_x[col] = False
 
                             x_array = np.array(complete_x)
-                            # print(model.coef_)
                             results = model.predict(x_array)
 
 
@@ -72,7 +60,6 @@ def get_model_predict():
                         predictions[f'station_{station}'] = None
 
                 break
-                # return jsonify(predictions)
             except Exception as e:
                 print(e)
                 time.sleep(10)
@@ -86,9 +73,6 @@ def get_model_predict():
         models[s] = load_model(s)
 
     predictions = predict(X_train,models)
-    # predictions = pd.DataFrame(predictions)
-    # predictions.index = pd.to_datetime(predictions.index,unit='s')
-
     return predictions
 #
 

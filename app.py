@@ -10,15 +10,6 @@ from model_training import get_model_predict
 app = Flask(__name__, static_url_path='')
 app.config.from_object('config')
 
-# @app.route('/')
-# def root():
-#     engine = generate_mysqlEnginelocal('dbikes')
-#     #return app.send_static_file('script.js')
-#     stations_json = get_stations(engine)
-#     #,MAPS_APIKEY=app.config['MAPS_APIKEY']
-#     return render_template('default.html',stations = json.dumps(stations_json))
-
-
 @app.route('/')
 def root():
     try:
@@ -56,9 +47,6 @@ def station_availability(station_id):
     try:
         sqlCommand = f'SELECT * FROM availability WHERE stationId = {station_id}'
         availability_data = sqlEngine.connect_to_rds(sqlCommand)
-        # Assuming you have a way to convert the row data to a dictionary or you fetch it as such
-        # If your data is not already a dict, you will need to convert it
-        # availability_dict = [dict(row) for row in availability_data]
         return availability_data
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -92,9 +80,7 @@ def searchLocation(loc):
 @app.route('/predict')
 def get_predict():
     try:
-        prediction = get_model_predict()
-        #print(prediction)
-        
+        prediction = get_model_predict()      
         if not prediction:
                 return jsonify({"error": "No predictions."}), 404
         

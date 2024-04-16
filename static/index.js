@@ -185,17 +185,7 @@ async function getOverlayDate() {
 }
 
 async function initWeather(weather) {
-  // Default weather details for homepage
-  //const defaultLocation = "Dublin";
-  // const url =
-  //   "http://api.openweathermap.org/geo/1.0/direct?q=" +
-  //   defaultLocation +
-  //   "&appid=17b4a592cf658d24febca963b75f7adc";
-
   const weather_json = await fetchWeather();
-  //console.log(weather_json);
-  //stationId weather description icon temperature pressure
-  //humidity windSpeed windDeg visibility fetchTime lastUpdate
   if (weather_json) {
     const weather_info = weather_json[0];
 
@@ -300,9 +290,7 @@ function IconColor(station, type = "bike") {
 }
 
 function changeIcon(stations_json) {
-  //console.log("change icon function triggered.");
   clearMarkers();
-  //console.log(currentMarkers);
   let target;
 
   if (
@@ -318,7 +306,6 @@ function changeIcon(stations_json) {
   }
 
   stations_json.forEach(async (station) => {
-    //console.log("Enetering the loop");
     const marker = await generateIcon(station, target);
     currentMarkers.push(marker);
   });
@@ -409,7 +396,6 @@ async function generateIcon(station, type) {
             selectStation(station, role, marker, type);
             clearStartOrEnd(role);
             button.classList.add(role);
-            //console.log(button.classList);
           });
         });
 
@@ -956,13 +942,8 @@ function getDistancesToLocation(lat, long, arrivalTime) {
           desiredTime < prev && desiredTime > curr ? curr : prev
         );
       };
-      //for a beginner, the average speed is 12 miles per hour, which is around 19 km per hour
-      //how many minutes
       const closestTimeForReturn = getClosestTime(arrivalTime, times);
       const closestTimeForStart = getClosestTime(startTime, times);
-      // console.log("closestTimeForReturn: ", closestTimeForReturn);
-      // console.log("closestTimeForStart: ", closestTimeForStart);
-
       let startBikeNum =
         closestTimeForStart == currentTime
           ? station[STATION_STRUCTURE.BIKE_NUM]
@@ -988,7 +969,6 @@ function getDistancesToLocation(lat, long, arrivalTime) {
 
     return {
       station: station,
-      // Get distance from given location to station location
       distance: getDistance(
         lat,
         long,
@@ -1035,7 +1015,6 @@ await setDefaultDatetimeLocal("startTime", currentTime);
 await initMap(stations_json);
 const predictions = await getPrediction();
 
-console.log(predictions);
 const firstKey = Object.keys(predictions)[0];
 const predictTimeRange = Object.keys(predictions[firstKey]);
 const lastTime = new Date(predictTimeRange[predictTimeRange.length - 1]);
