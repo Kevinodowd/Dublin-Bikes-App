@@ -5,16 +5,16 @@ import pickle
 import numpy as np
 from time import time
 def get_model_predict():
-    def get_stationId():
+    def get_stationId(conn):
         sqlCommand = f'SELECT stationId FROM stations;'
-        stationId = json.loads(sqlEngine.connect_to_rds(sqlCommand))
+        stationId = json.loads(sqlEngine.execute_sqlcommand_rds(conn,sqlCommand))
         stationId = [x[0] for x in stationId]
 
         return stationId
 
-    def clean_data():
+    def clean_data(conn):
         sqlCommand = f'SELECT * FROM weatherForecast;'
-        data = json.loads(sqlEngine.connect_to_rds(sqlCommand))
+        data = json.loads(sqlEngine.execute_sqlcommand_rds(conn,sqlCommand))
         data = pd.DataFrame(data)
         data.columns = ['stationId', 'weather', 'description', 'icon', 'temperature', 'pressure', 'humidity', 'windSpeed', 'windDeg', 'visibility', 'fetchTime', 'forecastTime']
         data = pd.get_dummies(data, columns=['description'])
@@ -66,9 +66,11 @@ def get_model_predict():
 
         return predictions
 
-    X_train = clean_data()
+    engine = sqlEngine.generate_mysqlEnginerds('dbikes');
+    with engine.connect() as conn:
+        X_train = clean_data(conn)
+        stationId = get_stationId(conn)
     models = {}
-    stationId = get_stationId()
     for s in stationId:
         models[s] = load_model(s)
 
