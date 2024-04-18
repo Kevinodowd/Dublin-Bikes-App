@@ -764,7 +764,8 @@ window.goToLocation = async function (startLocString, endLocString) {
           const station = locationsNearEndLocation[i];
           if (
             station.hasSpace != false &&
-            station.ADDRESS != nearestStartLocationWithBike.ADDRESS
+            station["station"][STATION_STRUCTURE.ADDRESS] !==
+              nearestStartLocationWithBike["station"][STATION_STRUCTURE.ADDRESS]
           ) {
             nearestEndLocationWithSpace = station;
             break;
