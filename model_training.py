@@ -4,7 +4,6 @@ from scraper import sqlEngine
 import pickle
 import numpy as np
 from time import time
-
 def get_model_predict():
     def get_stationId():
         sqlCommand = f'SELECT stationId FROM stations;'
@@ -23,7 +22,7 @@ def get_model_predict():
 
     def load_model(stationId):
         try:
-            with open(f'./ml_models/lasso_model_{stationId}.pkl', 'rb') as file:
+            with open(f'ml_models/lasso_model_{stationId}.pkl', 'rb') as file:
                 return pickle.load(file)
         except Exception as e:
             print(f"Error loading model for station {stationId}: {str(e)}")
@@ -31,36 +30,38 @@ def get_model_predict():
 
     def predict(X_train,models):
         predictions = {}
-        # while True:
-            # try:
-        forecastTime = [str(x) for x in pd.to_datetime(X_train['forecastTime'],unit='s')]
-        X_train = X_train.drop(['forecastTime'],axis=1)
-        X_train_columns = X_train.columns
+        while True:
+            try:
+                forecastTime = [str(x) for x in pd.to_datetime(X_train['forecastTime'],unit='s')]
+                X_train = X_train.drop(['forecastTime'],axis=1)
+                X_train_columns = X_train.columns
 
-        for station, model in models.items():
-            if model:
-                # try:
-                required_columns = model.feature_names_in_
-                complete_x = pd.DataFrame(columns=required_columns)
-                for col in required_columns:
-                    if col in X_train_columns:
-                        complete_x[col] = X_train[col]
+                for station, model in models.items():
+                    if model:
+                        try:
+                            required_columns = model.feature_names_in_
+                            complete_x = pd.DataFrame(columns=required_columns)
+                            for col in required_columns:
+                                if col in X_train_columns:
+                                    complete_x[col] = X_train[col]
+                                else:
+                                    complete_x[col] = False
+
+                            x_array = np.array(complete_x)
+                            results = model.predict(x_array)
+
+
+                            predictions[f'station_{station}'] = {forecastTime[i]: results[i] for i in range(len(forecastTime))}
+
+                        except Exception as e:
+                            predictions[f'station_{station}'] = None
                     else:
-                        complete_x[col] = False
+                        predictions[f'station_{station}'] = None
 
-                x_array = np.array(complete_x)
-                results = model.predict(x_array)
-                predictions[f'station_{station}'] = {forecastTime[i]: results[i] for i in range(len(forecastTime))}
-
-            #     except Exception as e:
-            #         predictions[f'station_{station}'] = None
-            # else:
-            #     predictions[f'station_{station}'] = None
-
-                # break
-            # except Exception as e:
-            #     print(e)
-            #     time.sleep(10)
+                break
+            except Exception as e:
+                print(e)
+                time.sleep(10)
 
         return predictions
 
@@ -73,5 +74,4 @@ def get_model_predict():
     predictions = predict(X_train,models)
     return predictions
 #
-p = get_model_predict()
 

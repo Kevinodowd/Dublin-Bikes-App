@@ -721,20 +721,13 @@ window.goToLocation = async function (startLocString, endLocString) {
           arrivalTime
         );
 
-        console.log(locationsNearStartLocation);
-
         for (let i = 0; i < locationsNearStartLocation.length; i++) {
           const station = locationsNearStartLocation[i];
-          if (station.hasBike !== 0) {
+          if (station.hasBike != false) {
             nearestStartLocationWithBike = station;
             break;
           }
         }
-
-        console.log(
-          "locations near start locations:",
-          locationsNearStartLocation
-        );
       } else {
         alert("Enter values before submit");
       }
@@ -770,15 +763,13 @@ window.goToLocation = async function (startLocString, endLocString) {
         for (let i = 0; i < locationsNearEndLocation.length; i++) {
           const station = locationsNearEndLocation[i];
           if (
-            station.hasSpace !== 0 &&
-            station != nearestStartLocationWithBike
+            station.hasSpace != false &&
+            station.ADDRESS != nearestStartLocationWithBike.ADDRESS
           ) {
             nearestEndLocationWithSpace = station;
             break;
           }
         }
-        console.log("nearest start location: ", nearestStartLocationWithBike);
-        console.log("nearest end location: ", nearestEndLocationWithSpace);
       } else {
         alert("Enter values before submit");
       }
