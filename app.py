@@ -11,7 +11,6 @@ from config import *
 
 app = Flask(__name__, static_url_path='')
 app.config.from_object('config')
-#engine = sqlEngine.generate_mysqlEnginerds('dbikes');
 
 @app.route('/')
 def root():
@@ -35,8 +34,7 @@ def stations():
             ORDER BY a.fetchTime DESC, a.stationId
             LIMIT 114;
         """
-        #with engine.connect() as conn:
-            #stations_json = sqlEngine.execute_sqlcommand_rds(conn,sqlCommand)
+
         stations_json = sqlEngine.ec2_to_rds(sqlCommand);
         if not stations_json:
             return jsonify({"error": "No stations found"}), 404
@@ -44,14 +42,10 @@ def stations():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-
-# The current availibility of bikes at a given station
 @app.route('/stations/<int:station_id>/availability')
 def station_availability(station_id):
-    # Connect to the database
     try:
         sqlCommand = f'SELECT * FROM availability WHERE stationId = {station_id}'
-        #with engine.connect() as conn:
         availability_data = sqlEngine.ec2_to_rds(sqlCommand)
         return availability_data
     except Exception as e:
@@ -62,7 +56,6 @@ def station_availability(station_id):
 def dublinWeather():
     try:
         sqlCommand = "SELECT * FROM currentWeather ORDER BY fetchTime DESC LIMIT 1;"
-        #with engine.connect() as conn:
         currentWeather_json = sqlEngine.ec2_to_rds(sqlCommand)
         if not currentWeather_json:
             return jsonify({"error": "No current weather data found"}), 404
@@ -78,7 +71,7 @@ def searchLocation(loc):
                          "fields": "formatted_address,name,geometry",
                          "input": loc,
                          "inputtype": "textquery",
-                         "locationbias": "circle:100000@53.34982,-6.2603",  # 100km from dublin
+                         "locationbias": "circle:100000@53.34982,-6.2603",  
                          "key": "AIzaSyBqVFiTmghTjDgdJQG11k3VXyLWdpZT4VA"
                      })
     return r.json()
@@ -97,6 +90,4 @@ def get_predict():
 
 
 if __name__ == '__main__':
-    # engine = sqlEngine.generate_mysqlEnginerds('dbikes');
-    # with engine.connect() as conn:
     app.run(debug=True)
