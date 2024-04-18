@@ -1,4 +1,3 @@
-// Initialize and add the map
 let map;
 let currentMarkers = [];
 let directionsRenderer;
@@ -84,7 +83,6 @@ spaceBtn.addEventListener("click", () => {
 
 async function initMap(stations_json) {
   try {
-    //set the position to dublin
     const position = { lat: 53.3498, lng: -6.2603 };
 
     map = new Map(document.getElementById("map"), {
@@ -94,7 +92,6 @@ async function initMap(stations_json) {
     });
     console.log("generate a map.");
     const tileLoadedListener = map.addListener("tilesloaded", () => {
-      // Add markers to current markers list. Async in order to add the marker, not the promise for each
       stations_json.forEach(async (station) => {
         const marker = await generateIcon(station, "bike");
         currentMarkers.push(marker);
@@ -109,9 +106,7 @@ async function initMap(stations_json) {
     });
 
     console.log("generate stations.");
-    ///////////////////
     window.directionsService = new google.maps.DirectionsService();
-    ///////////////////////
   } catch (error) {
     console.log(error);
   }
@@ -137,7 +132,6 @@ function calculateAndDisplayRoute(startStation, endStation) {
         polylineOptions: { strokeColor: "yellow" },
       });
 
-      //unit:m
       routeDistance = response.routes[0].legs[0].distance.value;
       console.log(routeDistance);
 
@@ -156,7 +150,6 @@ function timestampToDatetime(timestamp) {
   const hour = ("0" + date.getHours()).slice(-2);
   const minute = ("0" + date.getMinutes()).slice(-2);
 
-  // Create a string in the desired format
   const formattedDate =
     year + "-" + month + "-" + day + " " + hour + ":" + minute;
 
@@ -165,8 +158,6 @@ function timestampToDatetime(timestamp) {
 
 async function getOverlayDate() {
   function formatNumberToString(numberToFormat) {
-    // 1 ->  01  ->   01
-    // 12 -> 012 ->   12
     return ("0" + numberToFormat).slice(-2);
   }
   const now = new Date();
@@ -203,7 +194,6 @@ async function initWeather(weather) {
   }
 }
 
-//show all the bike stations on map
 async function fetchStations() {
   try {
     const response = await fetch("/stations");
@@ -327,10 +317,9 @@ async function generateIcon(station, type) {
     content: pinBackground.element,
   });
 
-  // Marker event listener for mouseover
+
   if (type != "start" && type != "end") {
     marker.addListener("gmp-click", () => {
-      //infoWindow.close()
       if (infoWindowArray.length != 0) {
         infoWindowArray[0].close();
         infoWindowArray = [];
@@ -367,7 +356,6 @@ async function generateIcon(station, type) {
       infoWindow.open(marker.map, marker);
 
       infoWindow.addListener("domready", () => {
-        // Ensure the content is rendered
         const selectBtnStart = document.getElementById("selectBtnStart");
         const selectBtnDestination = document.getElementById(
           "selectBtnDestination"
@@ -376,10 +364,6 @@ async function generateIcon(station, type) {
         const selectBtns = [selectBtnStart, selectBtnDestination];
 
         selectBtns.forEach((button) => {
-          // console.log(
-          //   station[STATION_STRUCTURE.ADDRESS],
-          //   station[STATION_STRUCTURE.BIKE_NUM]
-          // );
           if (
             station[STATION_STRUCTURE.BIKE_NUM] === 0 &&
             button.getAttribute("data-role") === "start"
@@ -399,7 +383,6 @@ async function generateIcon(station, type) {
           });
         });
 
-        //selectBtns = [];
       });
 
       function clearStartOrEnd(status) {
@@ -454,9 +437,7 @@ window.generateOccupancy = async (station_id, station_address) => {
     const occupancyBtns = document.getElementsByClassName("occupancyBtn");
 
     for (let i = 0; i < occupancyBtns.length; i++) {
-      // Change the display style of each element
-      //console.log(occupancyBtns[i]);
-      occupancyBtns[i].style.display = "inline-block"; // This will hide the elements
+      occupancyBtns[i].style.display = "inline-block"; 
     }
 
     const occupancyTip = document.getElementById("occupancyTip");
@@ -534,7 +515,6 @@ function generateAvgBarChart(dailyAvgData, barchartSection) {
   };
 
   Object.keys(dailyAvgData).forEach((date) => {
-    //console.log(date);
     trace1["x"].push(date);
     trace1["y"].push(dailyAvgData[date]["avgBike"]);
     trace2["y"].push(dailyAvgData[date]["avgSpace"]);
@@ -556,7 +536,6 @@ async function getTodayAvailabiliy(data) {
   const ct = Date.now();
   const today = new Date();
 
-  // Set the time to 5:00 AM
   today.setHours(5);
   today.setMinutes(0);
   today.setSeconds(0);
@@ -572,7 +551,6 @@ async function getTodayAvailabiliy(data) {
     }
   }
 
-  //console.log(td);
   return td;
 }
 
@@ -580,15 +558,12 @@ async function calculateDailyBikeNumbers(data) {
   const dailyCounts = [];
 
   data.forEach((item) => {
-    // Convert timestamp to a date string (YYYY-MM-DD)
     const date = new Date(item[5] * 1000).toISOString().split("T")[0];
 
-    // If the date isn't in the object, initialize it with 0
     if (!dailyCounts[date]) {
       dailyCounts[date] = { bikeNumber: 0, spaceNumber: 0, count: 0 };
     }
 
-    // Add the bike number to the total for the day
     dailyCounts[date]["count"] += 1;
     dailyCounts[date]["bikeNumber"] += item[4];
     dailyCounts[date]["spaceNumber"] += item[3];
@@ -606,10 +581,9 @@ async function calculateDailyBikeNumbers(data) {
 function showChart(state) {
   console.log("function showChart is triggered...");
 
-  //adjust the charts' state
   const occupancyCharts = document.getElementsByClassName("barchart");
   Array.from(occupancyCharts).forEach((chart) => {
-    const chartId = chart.id.toLowerCase(); // Convert chart ID to lowercase for comparison
+    const chartId = chart.id.toLowerCase(); 
 
     if (chartId.includes(state.toLowerCase())) {
       chart.style.display = "inline-block";
@@ -628,9 +602,7 @@ dailyAvgChartBtn.addEventListener("click", () => {
   showChart("dailyAvg");
 });
 
-/**
- * Reset the location input fields
- */
+
 window.resetLocationInputs = async function () {
   startLocationInput.value = "";
   endLocationInput.value = "";
@@ -657,7 +629,6 @@ window.resetLocationInputs = async function () {
  */
 
 window.goToLocation = async function (startLocString, endLocString) {
-  // 1. Get start location either from the one set by button or the search string
   let startLocation = null;
   let endLocation = null;
   let nearestStartLocationWithBike = null;
@@ -670,7 +641,6 @@ window.goToLocation = async function (startLocString, endLocString) {
   let submitOrNot = true;
 
   if (returnTime == "") {
-    //the user doesn't input the return time, then by default we take the shortest route and get the possible time
 
     const timeToArrive = (routeDistance / 19) * 1000 * 60;
     arrivalTime = new Date(now.getTime() + timeToArrive * 60000);
@@ -682,7 +652,6 @@ window.goToLocation = async function (startLocString, endLocString) {
     );
   } else if (returnTime < startTime) {
     submitOrNot = false;
-    //console.log("startTime: ", startTime, " returnTime: ", returnTime);
     alert("Your return Time is earlier than start time!");
   } else {
     arrivalTime = returnTime;
@@ -694,7 +663,6 @@ window.goToLocation = async function (startLocString, endLocString) {
 
   if (submitOrNot) {
     if (selectedStart) {
-      // We have selected the start location from a station's info popup
       startLocation = {
         name: selectedStart[STATION_STRUCTURE.ADDRESS],
         geometry: {
@@ -714,7 +682,6 @@ window.goToLocation = async function (startLocString, endLocString) {
       const possibleStartLocations = await fetchLocation(startLocString);
       if (possibleStartLocations?.candidates?.length > 0) {
         startLocation = possibleStartLocations.candidates[0];
-        // Get sorted list of places with distances from the given location
         const locationsNearStartLocation = getDistancesToLocation(
           startLocation.geometry.location.lat,
           startLocation.geometry.location.lng,
@@ -734,7 +701,6 @@ window.goToLocation = async function (startLocString, endLocString) {
     }
 
     if (selectedEnd) {
-      // We have selected the end location from a station's info popup
       endLocation = {
         name: selectedEnd[STATION_STRUCTURE.ADDRESS],
         geometry: {
@@ -754,7 +720,6 @@ window.goToLocation = async function (startLocString, endLocString) {
       const possibleEndLocations = await fetchLocation(endLocString);
       if (possibleEndLocations?.candidates?.length > 0) {
         endLocation = possibleEndLocations.candidates[0];
-        // Get sorted list of places with distances from the given location
         const locationsNearEndLocation = getDistancesToLocation(
           endLocation.geometry.location.lat,
           endLocation.geometry.location.lng,
@@ -777,7 +742,6 @@ window.goToLocation = async function (startLocString, endLocString) {
     }
 
     if (nearestStartLocationWithBike && nearestEndLocationWithSpace) {
-      // Replace inputs with the real location names from api
       startLocationInput.value = startLocation.name;
       endLocationInput.value = endLocation.name;
       returnTimeInput.value = arrivalTime;
@@ -924,11 +888,9 @@ function getDistancesToLocation(lat, long, arrivalTime) {
       predictions[`station_${station[STATION_STRUCTURE.ID]}`];
 
     if (stationPrediction) {
-      //get the time string in the prediction json to date format in js
       let times = Object.keys(stationPrediction).map((time) => new Date(time));
 
       times.unshift(currentTime);
-      // Function to find the closest time
       const getClosestTime = (desiredTime, times) => {
         return times.reduce((prev, curr) =>
           desiredTime < prev && desiredTime > curr ? curr : prev
@@ -971,7 +933,6 @@ function getDistancesToLocation(lat, long, arrivalTime) {
       hasSpace,
     };
   });
-  // Smallest to largest
   return distances.sort((a, b) => a.distance - b.distance);
 }
 

@@ -43,8 +43,6 @@
         <input type="datetime-local" id="startTime" name="startTime" /><br />
         <label for="returnTime">Return time:</label>
         <input type="datetime-local" id="returnTime" name="returnTime" />
-        <!-- 
-        <button onclick="goToLocation(fromLoc.value, toLoc.value)"> -->
         <div>
           <input
             id="submitBtn"
@@ -86,10 +84,8 @@
         >
           daily average
         </button>
-        <!-- <button class="occupancyBtn">next 6 hours predict</button> -->
         <div id="todayChart" class="barchart"></div>
         <div id="dailyAvgChart" class="barchart"></div>
-        <!-- <div id="predictChart" class="barchart"></div> -->
       </div>
     </div>
 
@@ -113,8 +109,6 @@
       <div id="map">Loading the map...</div>
     </div>
 
-    <!-- copy down from google api map document-->
-    <!-- prettier-ignore -->
     <script>(g => { var h, a, k, p = "The Google Maps JavaScript API", c = "google", l = "importLibrary", q = "__ib__", m = document, b = window; b = b[c] || (b[c] = {}); var d = b.maps || (b.maps = {}), r = new Set, e = new URLSearchParams, u = () => h || (h = new Promise(async (f, n) => { await (a = m.createElement("script")); e.set("libraries", [...r] + ""); for (k in g) e.set(k.replace(/[A-Z]/g, t => "_" + t[0].toLowerCase()), g[k]); e.set("callback", c + ".maps." + q); a.src = `https://maps.${c}apis.com/maps/api/js?` + e; d[q] = f; a.onerror = () => h = n(Error(p + " could not load.")); a.nonce = m.querySelector("script[nonce]")?.nonce || ""; m.head.append(a) })); d[l] ? console.warn(p + " only loads once. Ignoring:", g) : d[l] = (f, ...n) => r.add(f) && u().then(() => d[l](f, ...n)) })
       ({ key: "{{ MAPS_APIKEY }}", v: "beta" });</script>
   </body>

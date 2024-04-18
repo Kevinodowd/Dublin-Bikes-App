@@ -1,11 +1,3 @@
-/* 
-* Always set the map height explicitly to define the size of the div element
-* that contains the map. 
-*/
-
-/*
-* Optional: Makes the sample page fill the window. 
-*/
 html,
 body {
   height: 100%;
@@ -25,8 +17,8 @@ body {
 
 #form input[type="text"],
 #form input[type="datetime-local"] {
-  border: none; /* Removed border */
-  background-color: #2d2c2c; /* Blue background color */
+  border: none; 
+  background-color: #2d2c2c; 
   color: white;
   padding: 0.5rem;
   margin-bottom: 0.5rem;
@@ -36,8 +28,8 @@ body {
 
 #form input[type="submit"],
 #form input[type="reset"] {
-  border: none; /* Removed border */
-  background-color: #2d2c2c; /* Blue background color */
+  border: none; 
+  background-color: #2d2c2c; 
   color: white;
   padding: 0.5rem;
   margin-bottom: 0.5rem;
@@ -53,9 +45,8 @@ body {
 }
 
 #map {
-  height: calc(100% - 6vh); /* Adjusted height */
+  height: calc(100% - 6vh); 
   width: 75vw;
-  /* border: 3px solid black; */
 }
 
 #buttonContainer {
@@ -67,16 +58,15 @@ body {
 #buttonContainer button {
   margin: 0.5rem;
   padding: 0.5rem 1rem;
-  border: none; /* Removed border */
+  border: none; 
   border-radius: 5px;
-  /* background-color: #2196f3; Blue background color */
   color: white;
   cursor: pointer;
   transition: background-color 0.3s ease;
 }
 
 #buttonContainer button:hover {
-  background-color: #0e75b5; /* Darker blue on hover */
+  background-color: #0e75b5; 
 }
 
 #availableBikes {
@@ -108,8 +98,8 @@ body {
 
 #infoHeader {
   display: flex;
-  height: 6vh; /* Smaller height */
-  background-color: #2d2c2c; /* Transparent white */
+  height: 6vh; 
+  background-color: #2d2c2c; 
 }
 
 #leftbar {
@@ -117,7 +107,7 @@ body {
   width: 100%;
   display: flex;
   flex-direction: column;
-  border: none; /* Removed border */
+  border: none; 
   background-color: #f9f9f9;
   z-index: 100;
 }
